@@ -717,13 +717,67 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:3px;backgroun
 
 /* ── MOBILE ── */
 @media(max-width:720px){
+  /* Layout */
   .setup-grid,.gen-meta{grid-template-columns:1fr}
-  .main{padding:14px}
-  .tabs{overflow-x:auto}
+  .main{padding:12px}
+  .tabs{overflow-x:auto;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{padding:10px 14px;font-size:13px}
+
+  /* Header — stop game pill overflowing */
+  .app-header{padding:0 12px;gap:8px}
+  .logo-name{font-size:17px}
+  .logo-sub{display:none}
+  .game-pill{font-size:11px;padding:4px 8px;max-width:180px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .sync-hdr-btn{font-size:10px;padding:4px 10px}
+
+  /* Game info grid → stack vertically */
+  #panel-setup .card:first-of-type div[style*="grid-template-columns"]{
+    grid-template-columns:1fr!important;
+  }
+
+  /* Toolbar → wrap cleanly */
+  .gp-toolbar{gap:6px;padding:10px 12px}
+  .gp-toolbar .btn{font-size:11px;padding:7px 10px;flex:1 1 auto;justify-content:center}
+
+  /* Inning cards */
+  .innings-grid{grid-template-columns:1fr}
+  .pos-full{display:none}
+
+  /* Position rows — always show action buttons on mobile (no hover) */
+  .pr-edit{opacity:1!important;font-size:10px;padding:4px 8px}
+  .pr-injured{opacity:1!important;font-size:10px;padding:4px 8px}
+  .bc-edit{opacity:1!important;font-size:10px;padding:2px 8px}
+  .pr{padding:8px 12px;gap:10px}
+
+  /* Bench chips larger tap targets */
+  .bc{padding:5px 10px;font-size:12px}
+
+  /* History */
   .history-item{flex-direction:column;align-items:flex-start;gap:8px}
   .history-actions{display:flex;gap:6px}
-  .pos-full{display:none}
+
+  /* Setup generate button */
+  .setup-gen-btn{font-size:16px;padding:14px 24px}
+
+  /* Confirm roster */
+  .confirm-roster-wrap{flex-direction:column;align-items:stretch}
+  .confirm-roster-btn{width:100%;justify-content:center}
+
+  /* Modals */
+  .modal{padding:20px}
+  .row2{flex-direction:column}
+  .row2 .fg{margin-bottom:10px}
+
+  /* Summary table scroll */
+  .sum-wrap{overflow-x:auto}
 }
+
+/* Touch drag styles */
+.pr.drag-over{background:rgba(245,98,15,0.15);border:1px dashed var(--orange)}
+.bc.drag-over{background:rgba(245,98,15,0.15);border:1px dashed var(--orange)}
+.pr.dragging{opacity:0.4}
+.bc.dragging{opacity:0.4}
 
 </style>
 </head>
@@ -1654,7 +1708,12 @@ function renderInningCard(inn, plan){
     const isRepeat=repeatMap[name]===pos;
     const isTP=S.players.find(p=>p.name===name&&p.tp);
     const warnHtml=isRepeat?`<span class="warn-icon" title="${name} played ${pos} last inning too">⚠</span>`:'';
-    return `<div class="pr${isRepeat?' warn-repeat':''}" id="pr-${inn.inning}-${pos}">
+    return `<div class="pr${isRepeat?' warn-repeat':''}" id="pr-${inn.inning}-${pos}"
+      draggable="true"
+      ondragstart="dragStart(event,'field','${inn.inning}','${pos}','${name}')"
+      ondragover="dragOver(event)"
+      ondragleave="dragLeave(event)"
+      ondrop="dragDrop(event,'field','${inn.inning}','${pos}')">
       <span class="pos-pill ${posPillCls(pos)}">${pos}</span>
       <span class="pos-full">${POS_FULL[pos]||pos}</span>
       <span class="pos-player${isTP?' tp-name':''}">${name}${isTP?` <span class="badge b-tp" style="font-size:9px">TP</span>`:''}</span>
@@ -1667,7 +1726,12 @@ function renderInningCard(inn, plan){
   // Bench chips — safe index-based onclick
   const benchHtml=(inn.bench||[]).map((name,idx)=>{
     const isTP=S.players.find(p=>p.name===name&&p.tp);
-    return `<span class="bc${isTP?' tp-bc':''}">
+    return `<span class="bc${isTP?' tp-bc':''}"
+      draggable="true"
+      ondragstart="dragStart(event,'bench','${inn.inning}',${idx},'${name}')"
+      ondragover="dragOver(event)"
+      ondragleave="dragLeave(event)"
+      ondrop="dragDrop(event,'bench','${inn.inning}',${idx})">
       ${name}${isTP?' <span style="font-size:9px">TP</span>':''}
       <button class="bc-edit" onclick="openBenchEditModalByIdx(${inn.inning},${idx})">EDIT</button>
     </span>`;
@@ -2136,6 +2200,101 @@ function activeFieldPositions(){
   if(n>=9) return ['RF','CF','LF','3B','SS','2B','1B'];
   if(n===8) return ['RF','LF','3B','SS','2B','1B'];
   return ['RF','LF','3B','SS','1B'];
+}
+
+// ════════════════════════════════
+//  DRAG & DROP
+// ════════════════════════════════
+let dragCtx = null;
+
+function dragStart(event, zone, inning, posOrIdx, name){
+  dragCtx = { zone, inning: parseInt(inning), posOrIdx, name };
+  event.dataTransfer.effectAllowed = 'move';
+  event.target.classList.add('dragging');
+  setTimeout(()=>event.target.classList.remove('dragging'), 0);
+}
+
+function dragOver(event){
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+  event.currentTarget.classList.add('drag-over');
+}
+
+function dragLeave(event){
+  event.currentTarget.classList.remove('drag-over');
+}
+
+function dragDrop(event, targetZone, targetInning, targetPosOrIdx){
+  event.preventDefault();
+  event.currentTarget.classList.remove('drag-over');
+  if(!dragCtx || !S.lastPlan) return;
+
+  targetInning = parseInt(targetInning);
+  const plan = S.lastPlan;
+  const srcInn = plan.innings.find(x=>x.inning===dragCtx.inning);
+  const tgtInn = plan.innings.find(x=>x.inning===targetInning);
+  if(!srcInn || !tgtInn) return;
+
+  const srcName = dragCtx.name;
+  const srcZone = dragCtx.zone;
+  const srcPos  = dragCtx.posOrIdx; // position abbrev if field, index if bench
+
+  // Determine target player name
+  let tgtName = null;
+  if(targetZone === 'field') tgtName = tgtInn.positions[targetPosOrIdx];
+  if(targetZone === 'bench') tgtName = (tgtInn.bench||[])[parseInt(targetPosOrIdx)];
+
+  // Don't drop on self
+  if(srcInn===tgtInn && srcZone===targetZone && srcPos===targetPosOrIdx) return;
+
+  // Perform swap
+  if(srcZone==='field' && targetZone==='field'){
+    // Field ↔ Field (same or different inning)
+    srcInn.positions[srcPos] = tgtName||null;
+    if(!tgtName) delete srcInn.positions[srcPos];
+    tgtInn.positions[targetPosOrIdx] = srcName;
+
+  } else if(srcZone==='field' && targetZone==='bench'){
+    // Field → Bench slot
+    if(tgtName){
+      srcInn.positions[srcPos] = tgtName;
+      tgtInn.bench[parseInt(targetPosOrIdx)] = srcName;
+    } else {
+      delete srcInn.positions[srcPos];
+      tgtInn.bench.push(srcName);
+    }
+
+  } else if(srcZone==='bench' && targetZone==='field'){
+    // Bench → Field slot
+    const benchArr = srcInn.bench||[];
+    benchArr.splice(parseInt(srcPos), 1);
+    if(tgtName) benchArr.push(tgtName);
+    srcInn.bench = benchArr;
+    tgtInn.positions[targetPosOrIdx] = srcName;
+
+  } else if(srcZone==='bench' && targetZone==='bench'){
+    // Bench ↔ Bench
+    const srcBench = srcInn.bench||[];
+    const tgtBench = tgtInn.bench||[];
+    if(srcInn===tgtInn){
+      // Same inning bench reorder
+      srcBench.splice(parseInt(srcPos), 1, tgtName||srcName);
+      const tgtIdx = parseInt(targetPosOrIdx);
+      if(tgtName) tgtBench.splice(tgtIdx, 1, srcName);
+    } else {
+      srcBench.splice(parseInt(srcPos), 1);
+      if(tgtName){
+        tgtBench.splice(parseInt(targetPosOrIdx), 1, srcName);
+        srcBench.push(tgtName);
+      } else {
+        tgtBench.push(srcName);
+      }
+    }
+  }
+
+  dragCtx = null;
+  rebuildSummary(plan);
+  renderPlan(plan);
 }
 
 // ════════════════════════════════
