@@ -1,0 +1,2330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="FieldPlan">
+<meta name="theme-color" content="#0e0e0e">
+<title>FieldPlan — Gateway Flyers U11 #2</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --black:   #0e0e0e;
+  --black2:  #161616;
+  --black3:  #1e1e1e;
+  --black4:  #282828;
+  --black5:  #333333;
+  --grey1:   #444444;
+  --grey2:   #666666;
+  --grey3:   #999999;
+  --grey4:   #cccccc;
+  --white:   #f4f0eb;
+  --orange:  #f5620f;
+  --orange2: #ff7c35;
+  --orange3: #ff9a5c;
+  --orangeD: #c24a08;
+  --orangeXD:#7a2e04;
+  --amber:   #f0b429;
+  --red:     #e03131;
+  --green:   #2f9e44;
+  --blue:    #1c7ed6;
+  --tp:      #9c36b5;
+  --tp2:     #cc5de8;
+
+  --border:  rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --card:    rgba(255,255,255,0.03);
+  --card2:   rgba(255,255,255,0.06);
+  --card3:   rgba(255,255,255,0.09);
+
+  --out-bg:  rgba(245,98,15,0.15);
+  --out-txt: #ff9a5c;
+  --out-bdr: rgba(245,98,15,0.35);
+  --inf-bg:  rgba(240,180,41,0.12);
+  --inf-txt: #f0b429;
+  --inf-bdr: rgba(240,180,41,0.3);
+  --cat-bg:  rgba(28,126,214,0.15);
+  --cat-txt: #74c0fc;
+  --cat-bdr: rgba(28,126,214,0.3);
+  --pit-bg:  rgba(224,49,49,0.15);
+  --pit-txt: #ff6b6b;
+  --pit-bdr: rgba(224,49,49,0.3);
+  --tp-bg:   rgba(156,54,181,0.15);
+  --tp-txt:  #cc5de8;
+  --tp-bdr:  rgba(156,54,181,0.35);
+
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+  --radius:  8px;
+  --radius2: 12px;
+}
+
+body{font-family:var(--font-body);background:var(--black);color:var(--white);min-height:100vh;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--grey1);border-radius:3px}
+
+/* ── HEADER ── */
+.app-header{
+  background:var(--black2);
+  border-bottom:1px solid var(--border);
+  padding:0 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  height:54px;position:sticky;top:0;z-index:200;
+}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-mark{
+  width:34px;height:34px;background:var(--orange);border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-size:20px;color:var(--black);letter-spacing:0;
+}
+.logo-name{font-family:var(--font-display);font-size:22px;letter-spacing:1px;color:var(--white)}
+.logo-name span{color:var(--orange)}
+.header-right{display:flex;align-items:center;gap:12px}
+.game-info-pill{
+  background:var(--card2);border:1px solid var(--border2);border-radius:20px;
+  padding:4px 12px;font-size:12px;font-weight:500;color:var(--grey3);
+  cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;gap:6px;
+}
+.game-info-pill:hover{background:var(--card3);color:var(--white)}
+.game-info-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--orange);flex-shrink:0}
+.game-info-pill.has-data .dot{background:var(--green)}
+
+/* ── TABS ── */
+.tabs{
+  background:var(--black2);border-bottom:2px solid var(--border);
+  padding:0 24px;display:flex;gap:0;overflow-x:auto;
+}
+.tab{
+  font-family:var(--font-display);font-size:15px;letter-spacing:1.5px;
+  padding:12px 22px;cursor:pointer;color:var(--grey2);
+  border-bottom:3px solid transparent;margin-bottom:-2px;
+  background:none;border-top:none;border-left:none;border-right:none;
+  transition:color .15s,border-color .15s;white-space:nowrap;
+}
+.tab:hover{color:var(--grey4)}
+.tab.active{color:var(--orange);border-bottom-color:var(--orange)}
+
+/* ── LAYOUT ── */
+.main{flex:1;padding:28px 24px;max-width:1140px;margin:0 auto;width:100%}
+.panel{display:none}
+.panel.active{display:block}
+
+/* ── SECTION HEADERS ── */
+.sh{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap}
+.sh-title{font-family:var(--font-display);font-size:28px;letter-spacing:1px;color:var(--white);line-height:1}
+.sh-title span{color:var(--orange)}
+.sh-sub{font-size:13px;color:var(--grey3);margin-top:4px}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:20px}
+.card+.card{margin-top:14px}
+.card-title{font-family:var(--font-display);font-size:16px;letter-spacing:1px;color:var(--grey3);margin-bottom:14px;text-transform:uppercase}
+
+/* ── BUTTONS ── */
+.btn{
+  font-family:var(--font-display);font-size:13px;letter-spacing:1px;
+  padding:8px 16px;border-radius:var(--radius);cursor:pointer;
+  border:1px solid var(--border2);background:var(--card2);color:var(--white);
+  transition:all .15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+}
+.btn:hover{background:var(--card3);border-color:rgba(255,255,255,0.22)}
+.btn:active{transform:scale(0.97)}
+.btn-primary{background:var(--orange);border-color:var(--orange);color:var(--black)}
+.btn-primary:hover{background:var(--orange2);border-color:var(--orange2)}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--grey3)}
+.btn-ghost:hover{background:var(--card2);color:var(--white)}
+.btn-danger{background:rgba(224,49,49,0.12);border-color:rgba(224,49,49,0.3);color:#ff6b6b}
+.btn-danger:hover{background:rgba(224,49,49,0.2)}
+.btn-sm{padding:5px 10px;font-size:11px}
+.btn-xs{padding:3px 7px;font-size:10px;border-radius:4px}
+.btn-icon{padding:6px;width:28px;height:28px;justify-content:center}
+
+/* ── FORM ── */
+.fg{margin-bottom:14px}
+.fg:last-child{margin-bottom:0}
+.fg label{display:block;font-family:var(--font-display);font-size:11px;letter-spacing:1.5px;color:var(--grey3);margin-bottom:6px}
+input[type=text],input[type=password],input[type=date],input[type=number],select,textarea{
+  width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border2);
+  border-radius:var(--radius);padding:9px 12px;color:var(--white);
+  font-family:var(--font-body);font-size:14px;outline:none;
+  transition:border-color .15s,background .15s;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--orange);background:rgba(255,255,255,0.08)}
+input::placeholder,textarea::placeholder{color:var(--grey2)}
+select{cursor:pointer}
+select option{background:#1e1e1e;color:var(--white)}
+textarea{resize:vertical;min-height:80px}
+.row2{display:flex;gap:10px}
+.row2 .fg{flex:1;margin-bottom:0}
+
+/* ── TOGGLE SWITCH ── */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-info .tl{font-size:14px;font-weight:500;color:var(--white)}
+.toggle-info .ts{font-size:12px;color:var(--grey3);margin-top:1px}
+.sw{position:relative;width:38px;height:22px;flex-shrink:0}
+.sw input{opacity:0;width:0;height:0}
+.sw-slider{position:absolute;inset:0;background:var(--black5);border-radius:22px;cursor:pointer;transition:background .2s}
+.sw-slider::before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:var(--grey3);border-radius:50%;transition:transform .2s,background .2s}
+.sw input:checked+.sw-slider{background:var(--orange)}
+.sw input:checked+.sw-slider::before{transform:translateX(16px);background:var(--black)}
+
+/* ── CHIPS ── */
+.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:500;background:var(--card2);border:1px solid var(--border2);color:var(--white)}
+.chip-x{background:none;border:none;cursor:pointer;color:var(--grey3);font-size:14px;line-height:1;padding:0;transition:color .1s}
+.chip-x:hover{color:var(--red)}
+
+/* ── BADGES ── */
+.badge{font-family:var(--font-display);font-size:10px;letter-spacing:1px;padding:2px 7px;border-radius:3px}
+.b-pit{background:var(--pit-bg);color:var(--pit-txt);border:1px solid var(--pit-bdr)}
+.b-cat{background:var(--cat-bg);color:var(--cat-txt);border:1px solid var(--cat-bdr)}
+.b-tp {background:var(--tp-bg); color:var(--tp-txt); border:1px solid var(--tp-bdr)}
+.b-out{background:var(--out-bg);color:var(--out-txt);border:1px solid var(--out-bdr)}
+.b-inf{background:var(--inf-bg);color:var(--inf-txt);border:1px solid var(--inf-bdr)}
+.b-nc {background:rgba(156,54,181,0.12);color:#da77f2;border:1px solid rgba(156,54,181,0.3)}
+.b-warn{background:rgba(240,180,41,0.15);color:var(--amber);border:1px solid rgba(240,180,41,0.3)}
+.b-ok  {background:rgba(47,158,68,0.12);color:#69db7c;border:1px solid rgba(47,158,68,0.3)}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:48px 20px;color:var(--grey2)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-text{font-family:var(--font-display);font-size:18px;letter-spacing:1px;color:var(--grey3);margin-bottom:4px}
+.empty-sub{font-size:13px}
+
+/* ── DIVIDER ── */
+.divider{height:1px;background:var(--border);margin:20px 0}
+
+/* ════════════════════════
+   ROSTER PANEL
+════════════════════════ */
+.player-grid{display:flex;flex-direction:column;gap:8px}
+
+.player-row{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:10px 16px;display:flex;align-items:center;gap:12px;
+  transition:border-color .15s;
+}
+.player-row:hover{border-color:var(--border2)}
+.player-row.is-tp{border-color:rgba(156,54,181,0.3)}
+
+.player-avatar{
+  width:34px;height:34px;border-radius:50%;background:var(--black4);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-size:13px;color:var(--orange);flex-shrink:0;
+}
+.player-avatar.tp-av{background:rgba(156,54,181,0.2);color:var(--tp2)}
+
+.player-main{flex:1;min-width:0;overflow:hidden}
+.player-name{font-weight:600;font-size:15px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player-meta{font-size:11px;color:var(--grey3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+
+.avail-select{
+  font-family:var(--font-display);font-size:11px;letter-spacing:0.5px;
+  padding:5px 10px;border-radius:5px;cursor:pointer;border:1px solid var(--border2);
+  background:var(--card2);color:var(--white);outline:none;transition:all .15s;
+  width:150px;flex-shrink:0;
+}
+.avail-select:focus{border-color:var(--orange)}
+.avail-select.status-attending{background:rgba(47,158,68,0.12);border-color:rgba(47,158,68,0.35);color:#69db7c}
+.avail-select.status-not-attending{background:rgba(224,49,49,0.1);border-color:rgba(224,49,49,0.3);color:#ff6b6b}
+.avail-select.status-unknown{background:rgba(240,180,41,0.1);border-color:rgba(240,180,41,0.3);color:var(--amber)}
+
+/* add temp player modal */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:500;
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--black3);border:1px solid var(--border2);border-radius:var(--radius2);
+  padding:28px;width:100%;max-width:440px;
+}
+.modal-title{font-family:var(--font-display);font-size:22px;letter-spacing:1px;color:var(--white);margin-bottom:6px}
+.modal-sub{font-size:13px;color:var(--grey3);margin-bottom:20px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+
+/* ════════════════════════
+   GAME SETUP PANEL
+════════════════════════ */
+.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.setup-left{display:flex;flex-direction:column;gap:16px}
+.setup-right{display:flex;flex-direction:column;gap:16px}
+
+.inning-block{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px 16px;
+}
+.ib-header{
+  display:flex;align-items:center;gap:8px;margin-bottom:12px;
+}
+.ib-num{
+  background:var(--orange);color:var(--black);
+  font-family:var(--font-display);font-size:13px;letter-spacing:1px;
+  padding:2px 8px;border-radius:4px;flex-shrink:0;
+}
+
+.restrict-row{
+  display:flex;align-items:center;gap:10px;padding:8px 0;
+  border-bottom:1px solid var(--border);
+}
+.restrict-row:last-child{border-bottom:none}
+.restrict-name{flex:1;font-weight:500;font-size:14px}
+.restrict-sel{max-width:200px;padding:6px 10px;font-size:13px}
+
+.zone-select-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)}
+.zone-select-row:last-child{border-bottom:none}
+.zone-name{flex:1;font-weight:500}
+.zone-btns{display:flex;gap:4px}
+.zone-btn{
+  font-family:var(--font-display);font-size:10px;letter-spacing:0.5px;
+  padding:4px 10px;border-radius:4px;cursor:pointer;
+  border:1px solid var(--border2);background:var(--card2);color:var(--grey3);
+  transition:all .12s;
+}
+.zone-btn.active-out{background:var(--out-bg);border-color:var(--out-bdr);color:var(--out-txt)}
+.zone-btn.active-inf{background:var(--inf-bg);border-color:var(--inf-bdr);color:var(--inf-txt)}
+.zone-btn.active-none{background:var(--card2);border-color:var(--border2);color:var(--white)}
+
+/* logic toggles */
+.logic-section{margin-bottom:6px}
+.pitch-block-row{display:flex;align-items:center;gap:10px}
+.pb-num{
+  font-family:var(--font-display);font-size:28px;color:var(--orange);
+  min-width:24px;text-align:center;
+}
+.pb-label{font-size:13px;color:var(--grey3)}
+.stepper{display:flex;flex-direction:column;gap:3px}
+.step-btn{
+  width:22px;height:18px;background:var(--card2);border:1px solid var(--border2);
+  border-radius:3px;cursor:pointer;font-size:10px;color:var(--grey3);
+  display:flex;align-items:center;justify-content:center;transition:all .12s;
+}
+.step-btn:hover{background:var(--card3);color:var(--white)}
+
+/* ════════════════════════
+   GENERATE / OUTPUT
+════════════════════════ */
+.gen-meta{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;
+}
+.meta-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px 16px;
+}
+.meta-num{font-family:var(--font-display);font-size:34px;color:var(--orange);line-height:1;margin-bottom:4px}
+.meta-lbl{font-family:var(--font-display);font-size:10px;letter-spacing:2px;color:var(--grey3)}
+
+.gen-btn-wrap{display:flex;justify-content:center;padding:10px 0}
+.gen-btn{
+  font-family:var(--font-display);font-size:20px;letter-spacing:2px;
+  padding:16px 56px;border-radius:var(--radius2);cursor:pointer;
+  background:var(--orange);border:none;color:var(--black);
+  transition:all .2s;display:flex;align-items:center;gap:10px;
+}
+.gen-btn:hover{background:var(--orange2);transform:translateY(-2px)}
+.gen-btn:active{transform:scale(0.97)}
+.gen-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+.spinner{
+  width:36px;height:36px;border:3px solid var(--border2);
+  border-top-color:var(--orange);border-radius:50%;
+  animation:spin .75s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.loading-wrap{display:none;flex-direction:column;align-items:center;gap:14px;padding:48px;text-align:center}
+.loading-wrap.on{display:flex}
+.loading-txt{font-family:var(--font-display);font-size:18px;letter-spacing:2px;color:var(--orange)}
+.loading-sub{font-size:13px;color:var(--grey3)}
+
+.err-box{display:none;background:rgba(224,49,49,0.1);border:1px solid rgba(224,49,49,0.3);border-radius:var(--radius);padding:14px;color:#ff6b6b;font-size:14px}
+.err-box.on{display:block}
+
+/* ── PLAN OUTPUT ── */
+#plan-output{display:none}
+#plan-output.on{display:block}
+
+.plan-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;flex-wrap:wrap;gap:10px;
+}
+.plan-title-block{}
+.plan-title{font-family:var(--font-display);font-size:36px;letter-spacing:1px;line-height:1}
+.plan-title span{color:var(--orange)}
+.plan-game-meta{font-size:13px;color:var(--grey3);margin-top:4px}
+.plan-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* warning bar */
+.warning-bar{
+  background:rgba(240,180,41,0.1);border:1px solid rgba(240,180,41,0.3);
+  border-radius:var(--radius);padding:10px 14px;
+  display:flex;align-items:flex-start;gap:10px;margin-bottom:16px;
+  font-size:13px;color:var(--amber);
+}
+.warning-bar.on{display:flex}
+.warning-bar:not(.on){display:none}
+
+.innings-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));
+  gap:12px;margin-bottom:24px;
+}
+
+/* inning card */
+.ic{
+  background:var(--black2);border:1px solid var(--border);border-radius:var(--radius2);
+  overflow:hidden;transition:border-color .2s,transform .2s;
+}
+.ic:hover{transform:translateY(-2px);border-color:rgba(245,98,15,0.3)}
+
+.ic-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;background:rgba(0,0,0,0.35);border-bottom:1px solid var(--border);
+  gap:6px;flex-wrap:wrap;
+}
+.ic-num{font-family:var(--font-display);font-size:22px;color:var(--orange)}
+.ic-num small{font-size:11px;letter-spacing:1px;color:var(--grey3);margin-right:4px}
+.ic-badges{display:flex;gap:4px;flex-wrap:wrap}
+
+.pit-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  background:var(--pit-bg);border:1px solid var(--pit-bdr);
+  border-radius:20px;padding:3px 9px;font-size:11px;font-weight:600;color:var(--pit-txt);
+}
+.cat-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  background:var(--cat-bg);border:1px solid var(--cat-bdr);
+  border-radius:20px;padding:3px 9px;font-size:11px;font-weight:600;color:var(--cat-txt);
+}
+
+/* position rows */
+.pos-rows{padding:6px 0}
+.pr{
+  display:flex;align-items:center;gap:8px;padding:6px 14px;
+  border-bottom:1px solid rgba(255,255,255,0.03);transition:background .12s;
+  position:relative;
+}
+.pr:last-child{border-bottom:none}
+.pr:hover{background:rgba(255,255,255,0.03)}
+.pr.warn-repeat{background:rgba(240,180,41,0.06)}
+
+.pos-pill{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:28px;height:22px;border-radius:3px;
+  font-family:var(--font-display);font-size:10px;letter-spacing:0.5px;flex-shrink:0;
+}
+.pp-out{background:var(--out-bg);color:var(--out-txt);border:1px solid var(--out-bdr)}
+.pp-inf{background:var(--inf-bg);color:var(--inf-txt);border:1px solid var(--inf-bdr)}
+.pp-cat{background:var(--cat-bg);color:var(--cat-txt);border:1px solid var(--cat-bdr)}
+
+.pos-full{font-family:var(--font-display);font-size:11px;letter-spacing:.3px;color:var(--grey2);width:76px;flex-shrink:0}
+
+.pos-player{font-weight:600;font-size:15px;color:var(--white);flex:1}
+.pos-player.tp-name{color:var(--tp2)}
+
+.warn-icon{color:var(--amber);font-size:13px;flex-shrink:0;cursor:help}
+
+/* edit button on row */
+.pr-edit{
+  opacity:0;transition:opacity .12s;
+  background:var(--card2);border:1px solid var(--border2);
+  border-radius:4px;padding:2px 7px;
+  font-family:var(--font-display);font-size:9px;letter-spacing:.5px;
+  color:var(--grey3);cursor:pointer;flex-shrink:0;
+}
+.pr:hover .pr-edit{opacity:1}
+.pr-edit:hover{background:var(--orange);border-color:var(--orange);color:var(--black)}
+
+/* edit mode overlay on card */
+.ic.editing{border-color:var(--orange);box-shadow:0 0 0 2px rgba(245,98,15,0.2)}
+
+.bench-foot{
+  padding:7px 14px 9px;background:rgba(0,0,0,0.25);border-top:1px solid var(--border);
+}
+.bench-lbl{font-family:var(--font-display);font-size:9px;letter-spacing:1.5px;color:var(--grey2);margin-bottom:4px}
+.bench-chips{display:flex;flex-wrap:wrap;gap:4px}
+.bc{background:rgba(255,255,255,0.05);border:1px solid var(--border2);color:var(--grey3);font-size:11px;font-weight:500;padding:2px 8px;border-radius:3px;display:inline-flex;align-items:center;gap:5px}
+.bc.tp-bc{background:var(--tp-bg);border-color:var(--tp-bdr);color:var(--tp-txt)}
+.bc-edit{
+  background:none;border:none;cursor:pointer;
+  font-family:var(--font-display);font-size:9px;letter-spacing:.5px;
+  color:var(--grey2);padding:0;transition:color .1s;
+  opacity:0;
+}
+.bench-chips:hover .bc-edit{opacity:1}
+.bc:hover .bc-edit{opacity:1;color:var(--orange)}
+
+/* consecutive bench warning per card */
+.bench-warn{background:rgba(240,180,41,0.08);border-top:1px solid rgba(240,180,41,0.2);padding:5px 14px;font-size:11px;color:var(--amber);display:none}
+.bench-warn.on{display:block}
+
+/* player summary table */
+.sum-wrap{background:var(--black2);border:1px solid var(--border);border-radius:var(--radius2);overflow-x:auto}
+.sum-table{width:100%;border-collapse:collapse;font-size:12px}
+.sum-table th{font-family:var(--font-display);font-size:10px;letter-spacing:1.5px;color:var(--grey3);padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);background:rgba(0,0,0,0.2);white-space:nowrap}
+.sum-table td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:middle}
+.sum-table tr:last-child td{border-bottom:none}
+.sum-table tr:hover td{background:rgba(255,255,255,0.02)}
+.s-player{font-weight:600;font-size:13px;color:var(--white);white-space:nowrap}
+.s-player.tp-s{color:var(--tp2)}
+.s-count{font-family:var(--font-display);font-size:14px;color:var(--grey3)}
+.s-cell{display:inline-flex;align-items:center;justify-content:center;width:34px;height:20px;border-radius:3px;font-family:var(--font-display);font-size:9px;letter-spacing:.3px}
+.sc-out{background:var(--out-bg);color:var(--out-txt);border:1px solid var(--out-bdr)}
+.sc-inf{background:var(--inf-bg);color:var(--inf-txt);border:1px solid var(--inf-bdr)}
+.sc-cat{background:var(--cat-bg);color:var(--cat-txt);border:1px solid var(--cat-bdr)}
+.sc-pit{background:var(--pit-bg);color:var(--pit-txt);border:1px solid var(--pit-bdr)}
+.sc-ben{background:rgba(255,255,255,0.04);color:var(--grey2);border:1px solid var(--border2)}
+.sc-warn{outline:2px solid var(--amber)}
+
+/* pitcher-two-games banner */
+.p2g-banner{
+  background:rgba(224,49,49,0.1);border:1px solid rgba(224,49,49,0.3);
+  border-radius:var(--radius);padding:10px 14px;
+  display:none;align-items:center;gap:10px;margin-bottom:14px;
+  font-size:13px;color:#ff6b6b;
+}
+.p2g-banner.on{display:flex}
+
+/* edit dropdown */
+.edit-dropdown{
+  position:absolute;right:14px;top:34px;z-index:100;
+  background:var(--black3);border:1px solid var(--border2);border-radius:var(--radius);
+  padding:6px;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.5);
+  display:none;
+}
+.edit-dropdown.open{display:block}
+.ed-option{
+  padding:7px 10px;border-radius:5px;cursor:pointer;
+  font-size:13px;color:var(--white);transition:background .1s;
+  display:flex;align-items:center;gap:8px;
+}
+.ed-option:hover{background:var(--card2)}
+.ed-option .ep{font-family:var(--font-display);font-size:11px;letter-spacing:.5px;min-width:28px}
+
+/* ── SETTINGS ── */
+.api-key-row{display:flex;gap:8px;align-items:flex-end}
+.api-key-row .fg{flex:1;margin:0}
+
+/* ── RESPONSIVE ── */
+@media(max-width:720px){
+  .setup-grid,.gen-meta{grid-template-columns:1fr}
+  .main{padding:16px}
+  .tabs{overflow-x:auto}
+}
+
+.player-row.not-attending{opacity:0.45;border-color:rgba(255,255,255,0.04)}
+.player-row.not-attending .player-name{text-decoration:line-through;color:var(--grey3)}
+
+.avail-select{
+  font-family:var(--font-display);font-size:11px;letter-spacing:0.5px;
+  padding:4px 8px;border-radius:5px;cursor:pointer;border:1px solid var(--border2);
+  background:var(--card2);color:var(--white);outline:none;transition:all .15s;
+  min-width:130px;
+}
+.avail-select:focus{border-color:var(--orange)}
+.avail-select.status-attending{background:rgba(47,158,68,0.12);border-color:rgba(47,158,68,0.35);color:#69db7c}
+.avail-select.status-not-attending{background:rgba(224,49,49,0.1);border-color:rgba(224,49,49,0.3);color:#ff6b6b}
+.avail-select.status-unknown{background:rgba(240,180,41,0.1);border-color:rgba(240,180,41,0.3);color:var(--amber)}
+@media print{
+  @page { size: 8.5in 11in; margin: 0.45in 0.4in; }
+
+  /* Hide everything except the plan output */
+  .app-header,.tabs,#generate-area>*:not(#plan-output),.plan-actions,
+  .loading-wrap,.err-box,.gen-meta,.p2g-banner,
+  .warning-bar,.sum-wrap,.sh,.print-inning-header{ display:none!important }
+
+  #plan-output{ display:block!important }
+  body{ background:#fff; color:#111; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
+  /* Plan header — compact game info strip */
+  .plan-header{
+    display:flex!important;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
+    padding-bottom:8px;
+    border-bottom:2px solid #e85000;
+  }
+  .plan-title{ font-size:18px!important; color:#111!important; line-height:1; }
+  .plan-title span{ color:#e85000!important; }
+  .plan-game-meta{ font-size:11px!important; color:#555!important; margin-top:2px; }
+  .plan-actions{ display:none!important; }
+
+  /* Inning cards grid — fit all on one page */
+  .innings-grid{
+    display:grid!important;
+    grid-template-columns: repeat(3, 1fr);
+    gap:6px;
+    page-break-inside:avoid;
+    break-inside:avoid;
+  }
+
+  .ic{
+    border:1px solid #ccc!important;
+    border-radius:4px!important;
+    background:#fff!important;
+    page-break-inside:avoid;
+    break-inside:avoid;
+    overflow:hidden;
+    transform:none!important;
+    box-shadow:none!important;
+    font-size:9px;
+  }
+
+  .ic-head{
+    background:#f2f2f2!important;
+    border-bottom:1px solid #ccc!important;
+    padding:4px 8px!important;
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:3px;
+  }
+
+  .ic-num{ font-size:13px!important; color:#e85000!important; }
+  .ic-num small{ font-size:8px!important; color:#777!important; }
+
+  .pit-badge,.cat-badge{
+    font-size:8px!important;
+    padding:1px 5px!important;
+    border-radius:3px!important;
+  }
+  .pit-badge{ background:#fde8e8!important; color:#c00!important; border:1px solid #f5c6c6!important; }
+  .cat-badge{ background:#e8f0fe!important; color:#1a5dc2!important; border:1px solid #c6d9f5!important; }
+
+  .pos-rows{ padding:2px 0!important; }
+
+  .pr{
+    padding:3px 8px!important;
+    border-bottom:1px solid #f0f0f0!important;
+    gap:5px!important;
+  }
+
+  .pos-pill{
+    width:22px!important; height:16px!important;
+    font-size:7px!important; border-radius:2px!important;
+  }
+  .pp-out{ background:#fff3e8!important; color:#c45000!important; border:1px solid #f5c89a!important; }
+  .pp-inf{ background:#fffbe8!important; color:#8a6000!important; border:1px solid #f5e29a!important; }
+  .pp-cat{ background:#e8f0fe!important; color:#1a5dc2!important; border:1px solid #c6d9f5!important; }
+
+  .pos-full{ font-size:8px!important; width:58px!important; color:#666!important; }
+  .pos-player{ font-size:10px!important; color:#111!important; font-weight:600!important; }
+  .tp-name{ color:#7b2fa0!important; }
+  .pr-edit{ display:none!important; }
+  .warn-icon{ font-size:8px!important; }
+
+  .bench-foot{ padding:3px 8px 4px!important; background:#fafafa!important; }
+  .bench-lbl{ font-size:7px!important; margin-bottom:2px!important; color:#999!important; }
+  .bc{ font-size:8px!important; padding:1px 5px!important; color:#666!important; background:#f0f0f0!important; border:1px solid #ddd!important; }
+  .bc.tp-bc{ background:#f5e8ff!important; color:#7b2fa0!important; border-color:#d4a8f0!important; }
+  .bench-warn{ display:none!important; }
+  .bc-edit{ display:none!important; }
+}
+
+.print-inning-header{display:none}
+
+.history-item{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px 18px;display:flex;align-items:center;gap:14px;margin-bottom:8px;
+  transition:border-color .15s;
+}
+.history-item:hover{border-color:var(--border2)}
+.history-date{font-family:var(--font-display);font-size:18px;color:var(--orange);min-width:120px}
+.history-meta{flex:1;font-size:13px;color:var(--grey3)}
+.history-meta strong{color:var(--white)}
+.history-actions{display:flex;gap:6px;flex-shrink:0}
+
+/* orange accent line top */
+body::before{content:'';position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--orangeD),var(--orange),var(--orange3));z-index:999}
+
+/* ── CONFIRM ROSTER ── */
+.confirm-roster-wrap{margin-top:18px;padding-top:18px;border-top:1px solid var(--border);display:flex;justify-content:flex-end}
+.confirm-roster-btn{font-family:var(--font-display);font-size:17px;letter-spacing:1.5px;padding:14px 36px;background:var(--orange);border:none;border-radius:var(--radius2);color:var(--black);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px}
+.confirm-roster-btn:hover{background:var(--orange2);transform:translateY(-2px)}
+.confirm-roster-btn:active{transform:scale(.97)}
+
+/* ── SYNC BUTTON IN HEADER ── */
+.sync-hdr-btn{background:rgba(28,126,214,0.15);border:1px solid rgba(28,126,214,0.35);border-radius:20px;padding:5px 14px;font-family:var(--font-display);font-size:11px;letter-spacing:1px;color:#74c0fc;cursor:pointer;transition:all .15s;white-space:nowrap}
+.sync-hdr-btn:hover{background:rgba(28,126,214,0.28)}
+
+/* ── GENERATE GAME PLAN BUTTON (bottom of setup) ── */
+.setup-generate-wrap{padding:22px 0 6px;display:flex;flex-direction:column;align-items:center;gap:12px;border-top:1px solid var(--border);margin-top:22px}
+.setup-gen-btn{font-family:var(--font-display);font-size:20px;letter-spacing:2px;padding:16px 56px;border-radius:var(--radius2);cursor:pointer;background:var(--orange);border:none;color:var(--black);transition:all .2s;display:flex;align-items:center;gap:10px;width:100%;max-width:420px;justify-content:center}
+.setup-gen-btn:hover{background:var(--orange2);transform:translateY(-2px)}
+.setup-gen-btn:active{transform:scale(.97)}
+.setup-gen-btn:disabled{opacity:.42;cursor:not-allowed;transform:none}
+
+/* ── GAME PLAN TAB ── */
+.gp-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius2)}
+.btn-purple{background:rgba(100,80,200,0.15);border-color:rgba(100,80,200,0.35);color:#b197fc}
+.btn-purple:hover{background:rgba(100,80,200,0.25)}
+.btn-amber{background:rgba(240,180,41,0.12);border-color:rgba(240,180,41,0.3);color:var(--amber)}
+.btn-amber:hover{background:rgba(240,180,41,0.22)}
+#gp-empty{display:none;text-align:center;padding:60px 20px}
+#plan-output{display:none}
+
+/* ── INJURED BUTTON ON ROW ── */
+.pr-injured{opacity:0;transition:opacity .12s;background:rgba(224,49,49,0.1);border:1px solid rgba(224,49,49,0.25);border-radius:4px;padding:2px 6px;font-family:var(--font-display);font-size:9px;color:#ff6b6b;cursor:pointer;flex-shrink:0}
+.pr:hover .pr-injured{opacity:1}
+.pr-injured:hover{background:rgba(224,49,49,0.25)}
+
+/* ── HISTORY ── */
+.history-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:13px 16px;display:flex;align-items:center;gap:14px;margin-bottom:8px;transition:border-color .15s}
+.history-item:hover{border-color:var(--border2)}
+.history-date{font-family:var(--font-display);font-size:17px;color:var(--orange);min-width:110px}
+.history-meta{flex:1;font-size:13px;color:var(--grey3)}
+.history-meta strong{color:var(--white)}
+.history-actions{display:flex;gap:6px;flex-shrink:0}
+
+/* ── SYNC MODAL ── */
+.sync-section{background:var(--card2);border:1px solid var(--border2);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.sync-section:last-child{margin-bottom:0}
+.sync-section-title{font-family:var(--font-display);font-size:12px;letter-spacing:1px;color:var(--grey3);margin-bottom:8px}
+
+/* ── INGAME MODAL ── */
+.ig-loading{display:none;text-align:center;padding:16px}
+
+/* ── PRINT ── */
+@media print{
+  .app-header,.tabs,.gp-toolbar,.loading-wrap,.err-box,.warning-bar,.sum-wrap,.sh,
+  .pr-edit,.pr-injured,.bc-edit,.confirm-roster-wrap{display:none!important}
+  #plan-output{display:block!important}
+  body{background:#fff;color:#111;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .innings-grid{display:grid!important;grid-template-columns:repeat(3,1fr);gap:6px;page-break-inside:avoid}
+  .ic{border:1px solid #ccc!important;border-radius:4px!important;background:#fff!important;page-break-inside:avoid;transform:none!important;font-size:9px}
+  .ic-head{background:#f2f2f2!important;border-bottom:1px solid #ccc!important;padding:4px 8px!important}
+  .ic-num{font-size:13px!important;color:#e85000!important}
+  .pit-badge{background:#fde8e8!important;color:#c00!important;border:1px solid #f5c6c6!important;font-size:8px!important;padding:1px 5px!important}
+  .cat-badge{background:#e8f0fe!important;color:#1a5dc2!important;border:1px solid #c6d9f5!important;font-size:8px!important;padding:1px 5px!important}
+  .pr{padding:3px 8px!important}
+  .pos-pill{width:20px!important;height:16px!important;font-size:7px!important}
+  .pp-out{background:#fff3e8!important;color:#c45000!important;border:1px solid #f5c89a!important}
+  .pp-inf{background:#fffbe8!important;color:#8a6000!important;border:1px solid #f5e29a!important}
+  .pp-cat{background:#e8f0fe!important;color:#1a5dc2!important;border:1px solid #c6d9f5!important}
+  .pos-full{font-size:8px!important;width:56px!important;color:#666!important}
+  .pos-player{font-size:10px!important;color:#111!important;font-weight:600!important}
+  .bench-foot{padding:3px 8px 4px!important;background:#fafafa!important}
+  .bench-lbl{font-size:7px!important;color:#999!important}
+  .bc{font-size:8px!important;padding:1px 5px!important;color:#666!important;background:#f0f0f0!important;border:1px solid #ddd!important}
+  .bench-warn{display:none!important}
+}
+
+/* ── MOBILE ── */
+@media(max-width:720px){
+  /* Layout */
+  .setup-grid,.gen-meta{grid-template-columns:1fr}
+  .main{padding:12px}
+  .tabs{overflow-x:auto;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{padding:10px 14px;font-size:13px}
+
+  /* Header — stop game pill overflowing */
+  .app-header{padding:0 12px;gap:8px}
+  .logo-name{font-size:17px}
+  .logo-sub{display:none}
+  .game-pill{font-size:11px;padding:4px 8px;max-width:180px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .sync-hdr-btn{font-size:10px;padding:4px 10px}
+
+  /* Game info grid → stack vertically */
+  #panel-setup .card:first-of-type div[style*="grid-template-columns"]{
+    grid-template-columns:1fr!important;
+  }
+
+  /* Toolbar → wrap cleanly */
+  .gp-toolbar{gap:6px;padding:10px 12px}
+  .gp-toolbar .btn{font-size:11px;padding:7px 10px;flex:1 1 auto;justify-content:center}
+
+  /* Inning cards */
+  .innings-grid{grid-template-columns:1fr}
+  .pos-full{display:none}
+
+  /* Position rows — always show action buttons on mobile (no hover) */
+  .pr-edit{opacity:1!important;font-size:10px;padding:4px 8px}
+  .pr-injured{opacity:1!important;font-size:10px;padding:4px 8px}
+  .bc-edit{opacity:1!important;font-size:10px;padding:2px 8px}
+  .pr{padding:8px 12px;gap:10px}
+
+  /* Bench chips larger tap targets */
+  .bc{padding:5px 10px;font-size:12px}
+
+  /* History */
+  .history-item{flex-direction:column;align-items:flex-start;gap:8px}
+  .history-actions{display:flex;gap:6px}
+
+  /* Setup generate button */
+  .setup-gen-btn{font-size:16px;padding:14px 24px}
+
+  /* Confirm roster */
+  .confirm-roster-wrap{flex-direction:column;align-items:stretch}
+  .confirm-roster-btn{width:100%;justify-content:center}
+
+  /* Modals */
+  .modal{padding:20px}
+  .row2{flex-direction:column}
+  .row2 .fg{margin-bottom:10px}
+
+  /* Summary table scroll */
+  .sum-wrap{overflow-x:auto}
+}
+
+/* Touch drag styles */
+.pr.drag-over{background:rgba(245,98,15,0.15);border:1px dashed var(--orange)}
+.bc.drag-over{background:rgba(245,98,15,0.15);border:1px dashed var(--orange)}
+.pr.dragging{opacity:0.4}
+.bc.dragging{opacity:0.4}
+
+</style>
+</head>
+<body>
+<div style="display:flex;flex-direction:column;min-height:100vh">
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="logo">
+    <div class="logo-mark">FP</div>
+    <div style="display:flex;flex-direction:column;line-height:1.1">
+      <div class="logo-name">Field<span>Plan</span></div>
+      <div style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:var(--grey3)">GATEWAY FLYERS U11 #2</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="sync-hdr-btn" onclick="openSyncModal()">&#8645; Sync</button>
+    <div class="game-info-pill" id="game-pill" onclick="switchTab('setup')">
+      <span class="dot"></span>
+      <span id="game-pill-text">Set game info</span>
+    </div>
+  </div>
+</header>
+
+<!-- TABS -->
+<nav class="tabs">
+  <button class="tab"        data-tab="roster"   onclick="switchTab('roster')">Roster</button>
+  <button class="tab active" data-tab="setup"    onclick="switchTab('setup')">Game Setup</button>
+  <button class="tab"        data-tab="gameplan" onclick="switchTab('gameplan')">Game Plan</button>
+  <button class="tab"        data-tab="history"  onclick="switchTab('history')">History</button>
+  <button class="tab"        data-tab="settings" onclick="switchTab('settings')">Settings</button>
+</nav>
+
+<main class="main">
+
+<!-- ROSTER -->
+<section class="panel" id="panel-roster">
+  <div class="sh">
+    <div>
+      <div class="sh-title">Team <span>Roster</span></div>
+      <div class="sh-sub">Set availability. Only Attending players are included in the game plan.</div>
+    </div>
+    <button class="btn" onclick="openTempPlayerModal()">+ Add Temporary Player</button>
+  </div>
+  <div class="card">
+    <div id="player-grid" class="player-grid"></div>
+  </div>
+  <!-- 4. Confirm & Submit Roster -->
+  <div class="confirm-roster-wrap">
+    <div style="flex:1;font-size:12px;color:var(--grey3)">
+      Confirming the roster resets Game Setup for a fresh game. History is kept.<br>
+      <span style="color:var(--tp2);font-weight:600">TP</span> = Temporary / called-up player.
+    </div>
+    <button class="confirm-roster-btn" onclick="confirmRoster()">&#10003; Confirm &amp; Submit Roster</button>
+  </div>
+</section>
+
+<!-- GAME SETUP -->
+<section class="panel active" id="panel-setup">
+  <div class="sh">
+    <div>
+      <div class="sh-title">Game <span>Setup</span></div>
+      <div class="sh-sub">Game details, pitcher/catcher by inning, logic settings.</div>
+    </div>
+    <button class="btn btn-primary" onclick="saveSetup()">&#10003; Save Setup</button>
+  </div>
+
+  <div class="card" style="margin-bottom:18px">
+    <div class="card-title">Game Info</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+      <div class="fg" style="margin:0">
+        <label>Date of Game</label><input type="date" id="gi-date">
+      </div>
+      <div class="fg" style="margin:0">
+        <label>Home / Away</label>
+        <select id="gi-ha">
+          <option value="">&#8212; select &#8212;</option>
+          <option value="Home">Home</option>
+          <option value="Away">Away</option>
+        </select>
+      </div>
+      <div class="fg" style="margin:0">
+        <label>Opponent Team</label><input type="text" id="gi-opp" placeholder="e.g. Tigers">
+      </div>
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:var(--grey3)">
+      Your team: <strong style="color:var(--orange)">Gateway Flyers U11 #2</strong>
+    </div>
+  </div>
+
+  <div class="setup-grid">
+    <div class="setup-left">
+
+      <!-- 2. Number of innings only — pitch block stepper removed -->
+      <div class="card">
+        <div class="card-title">Game Config</div>
+        <div class="fg">
+          <label>Number of Innings</label>
+          <select id="num-innings" onchange="onInningsChange()">
+            <option value="4">4 Innings</option>
+            <option value="5">5 Innings</option>
+            <option value="6" selected>6 Innings</option>
+            <option value="7">7 Innings</option>
+          </select>
+        </div>
+        <div style="background:rgba(47,158,68,0.08);border:1px solid rgba(47,158,68,0.2);border-radius:var(--radius);padding:10px 14px;font-size:12px;color:#69db7c">
+          &#10003; Availability is set on the <strong style="cursor:pointer;text-decoration:underline" onclick="switchTab('roster')">Roster tab</strong>. Only Attending players are included.
+        </div>
+      </div>
+
+      <!-- 3. Logic toggles — pitcher streak toggle removed -->
+      <div class="card">
+        <div class="card-title">Logic Toggles</div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="tl">Flag same position two innings in a row</div>
+            <div class="ts">Highlights when a player repeats the same position consecutively</div>
+          </div>
+          <label class="sw"><input type="checkbox" id="tog-repeat-pos" checked><span class="sw-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="tl">Enforce no consecutive bench</div>
+            <div class="ts">No player sits bench two innings in a row</div>
+          </div>
+          <label class="sw"><input type="checkbox" id="tog-no-consec" checked><span class="sw-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="tl">Equal bench time for all players</div>
+            <div class="ts">Balances bench innings across all players including pitchers and catchers</div>
+          </div>
+          <label class="sw"><input type="checkbox" id="tog-equal-bench" checked><span class="sw-slider"></span></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Player Zone Preferences</div>
+        <div class="sh-sub" style="margin-bottom:12px;font-size:12px">Lock players to outfield or infield only for this game.</div>
+        <div id="zone-pref-list"></div>
+      </div>
+
+    </div>
+    <div class="setup-right">
+
+      <!-- 2. Per-inning pitcher/catcher (no pitch block size) -->
+      <div class="card">
+        <div class="card-title">Pitcher &amp; Catcher &#8212; By Inning</div>
+        <div style="font-size:12px;color:var(--grey3);margin-bottom:12px">Assign a pitcher and catcher for each inning individually.</div>
+        <div id="inning-assignments"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Per-Player Restrictions</div>
+        <div id="restriction-list"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 5. Generate Game Plan button at bottom of setup tab -->
+  <div class="setup-generate-wrap">
+    <div class="card" style="width:100%;max-width:640px">
+      <div class="fg"><label>Additional Instructions (optional)</label>
+        <textarea id="extra-notes" placeholder="e.g. 'Keep Harvey in infield' or 'AJ may be late'&#8230;"></textarea>
+      </div>
+    </div>
+    <button class="setup-gen-btn" id="setup-gen-btn" onclick="generateFromSetup()">&#9918; Generate Game Plan</button>
+    <div class="loading-wrap" id="loading-wrap">
+      <div class="spinner"></div>
+      <div class="loading-txt">BUILDING YOUR GAME PLAN</div>
+      <div class="loading-sub">Claude is solving rotations, bench balance, and all constraints&#8230;</div>
+    </div>
+    <div class="err-box" id="err-box"></div>
+  </div>
+</section>
+
+<!-- 6. GAME PLAN TAB (replaces Generate) -->
+<section class="panel" id="panel-gameplan">
+  <div class="sh">
+    <div>
+      <div class="sh-title">Game <span>Plan</span></div>
+      <div id="plan-game-meta" style="font-size:13px;color:var(--grey3);margin-top:4px"></div>
+    </div>
+  </div>
+
+  <!-- Toolbar: Regenerate, Randomize, In-Game Adjustment, Print -->
+  <div class="gp-toolbar" id="gp-toolbar" style="display:none">
+    <button class="btn btn-primary" onclick="regeneratePlan()">&#8635; Regenerate</button>
+    <button class="btn btn-purple"  onclick="randomizePlan()">&#127922; Randomize</button>
+    <button class="btn btn-amber"   onclick="openInGameModal()">&#9889; In-Game Adjustment</button>
+    <button class="btn"             onclick="window.print()">&#128424; Print / PDF</button>
+    <div style="flex:1;min-width:8px"></div>
+    <div class="loading-wrap" id="gp-loading-wrap" style="padding:0;flex-direction:row;align-items:center;gap:10px;flex:0">
+      <div class="spinner" style="width:22px;height:22px;border-width:2px"></div>
+      <span style="font-family:var(--font-display);font-size:12px;letter-spacing:1px;color:var(--orange)">REPLANNING&#8230;</span>
+    </div>
+    <div class="err-box" id="gp-err-box" style="margin:0;padding:8px 12px;font-size:12px"></div>
+  </div>
+
+  <div class="warning-bar" id="warning-bar"></div>
+
+  <!-- Plan output -->
+  <div id="plan-output">
+    <div class="innings-grid" id="innings-output"></div>
+    <div class="sh" style="margin-top:6px;margin-bottom:8px">
+      <div class="sh-title" style="font-size:20px">Player <span>Summary</span></div>
+    </div>
+    <div class="sum-wrap">
+      <table class="sum-table" id="sum-table"></table>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div id="gp-empty" class="empty">
+    <div class="empty-icon">&#9918;</div>
+    <div class="empty-text">No game plan yet</div>
+    <div class="empty-sub">Go to Game Setup and click Generate Game Plan</div>
+    <button class="btn btn-primary" style="margin-top:16px" onclick="switchTab('setup')">Go to Game Setup &#8594;</button>
+  </div>
+</section>
+
+<!-- SETTINGS -->
+<section class="panel" id="panel-settings">
+  <div class="sh">
+    <div><div class="sh-title">App <span>Settings</span></div><div class="sh-sub">API key, cloud sync, and data management.</div></div>
+  </div>
+  <div class="card" style="max-width:520px">
+    <div class="card-title">Anthropic API Key</div>
+    <div class="api-key-row">
+      <div class="fg"><label>API Key</label><input type="password" id="api-key-input" placeholder="sk-ant-&#8230;" autocomplete="off"></div>
+      <button class="btn btn-primary" onclick="saveApiKey()">Save</button>
+    </div>
+    <div style="margin-top:8px;font-size:12px;color:var(--grey3)">Stored in your browser only. Never sent anywhere except Anthropic's API.</div>
+    <div id="key-status" style="margin-top:8px;font-size:13px;display:none"></div>
+
+    <div class="divider"></div>
+    <div class="card-title">Cloud Sync &#8212; JSONBin (Optional)</div>
+    <div style="font-size:12px;color:var(--grey3);margin-bottom:12px">
+      Create a free account at <strong>jsonbin.io</strong>, create a new Bin, then paste your Master Key and Bin ID here. Once set, data auto-syncs whenever you save.<br><br>
+      <strong>How to sync to phone:</strong> Set up JSONBin on both devices. Use Push/Pull to sync manually, or data auto-pushes after every action.
+    </div>
+    <div class="row2">
+      <div class="fg"><label>Master API Key</label><input type="password" id="jb-key" placeholder="$2b$10&#8230;" autocomplete="off"></div>
+      <div class="fg"><label>Bin ID</label><input type="text" id="jb-bin" placeholder="64abc123&#8230;"></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+      <button class="btn btn-primary" onclick="saveCloudConfig()">Save Config</button>
+      <button class="btn" onclick="cloudPush()">&#8593; Push to Cloud</button>
+      <button class="btn" onclick="cloudPull()">&#8595; Pull from Cloud</button>
+    </div>
+    <div id="cloud-status" style="margin-top:8px;font-size:12px;display:none"></div>
+
+    <div class="divider"></div>
+    <div class="card-title">Export &amp; Import</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" onclick="exportData()">&#8595; Export JSON</button>
+      <button class="btn" onclick="document.getElementById('import-file').click()">&#8593; Import JSON</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)">
+      <button class="btn btn-danger" onclick="clearData()">&#10005; Clear All Data</button>
+    </div>
+  </div>
+</section>
+
+<!-- HISTORY -->
+<section class="panel" id="panel-history">
+  <div class="sh">
+    <div><div class="sh-title">Game <span>History</span></div><div class="sh-sub">All generated plans. View, print, or delete.</div></div>
+    <button class="btn btn-danger btn-sm" onclick="clearHistory()">&#10005; Clear All History</button>
+  </div>
+  <div id="history-list"></div>
+</section>
+
+</main>
+
+<!-- MODALS -->
+
+<!-- History view -->
+<div class="modal-overlay" id="modal-history-view" style="align-items:flex-start;padding:20px;overflow-y:auto">
+  <div class="modal" style="max-width:900px;width:100%;margin:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="modal-title" id="hv-title">Game Plan</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="printHistoryPlan()">&#128424; Print / PDF</button>
+        <button class="btn" onclick="closeModal('modal-history-view')">&#10005; Close</button>
+      </div>
+    </div>
+    <div id="hv-body"></div>
+  </div>
+</div>
+
+<!-- Temp player -->
+<div class="modal-overlay" id="modal-tp">
+  <div class="modal">
+    <div class="modal-title">Add <span style="color:var(--tp2)">Temporary Player</span></div>
+    <div class="modal-sub">Called-up player. Flagged with TP throughout the app.</div>
+    <div class="row2">
+      <div class="fg"><label>First Name</label><input type="text" id="tp-first" placeholder="First&#8230;"></div>
+      <div class="fg"><label>Last Name</label><input type="text" id="tp-last" placeholder="Last&#8230;"></div>
+    </div>
+    <div class="fg"><label>Calling Up From (Team / Club)</label><input type="text" id="tp-team" placeholder="e.g. Junior Eagles"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-tp')">Cancel</button>
+      <button class="btn" style="background:var(--tp-bg);border-color:var(--tp-bdr);color:var(--tp-txt)" onclick="addTempPlayer()">Add TP</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit position -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
+    <div class="modal-title">Edit <span style="color:var(--orange)" id="edit-modal-title">Position</span></div>
+    <div class="modal-sub" id="edit-modal-sub"></div>
+    <div class="fg" style="margin-top:4px">
+      <label>Move to Position</label>
+      <select id="edit-pos-sel"></select>
+    </div>
+    <div id="edit-swap-note" style="font-size:12px;color:var(--grey3);margin-top:6px"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-edit')">Cancel</button>
+      <button class="btn btn-primary" onclick="applyEdit()">Apply &amp; Update Plan</button>
+    </div>
+  </div>
+</div>
+
+<!-- In-Game Adjustment -->
+<div class="modal-overlay" id="modal-ingame">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-title">&#9889; In-Game <span style="color:var(--amber)">Adjustment</span></div>
+    <div class="modal-sub">Describe the change and which inning it starts from. Completed innings stay locked.</div>
+    <div class="row2">
+      <div class="fg">
+        <label>Changes Start From Inning</label>
+        <select id="ig-from-inning"></select>
+      </div>
+      <div class="fg">
+        <label>Adjustment Type</label>
+        <select id="ig-type">
+          <option value="general">General adjustment</option>
+          <option value="pitcher">Pitcher change</option>
+          <option value="zone">Zone / position restriction</option>
+          <option value="late">Player arrived late</option>
+          <option value="injury">Remove injured player</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg">
+      <label>Instructions</label>
+      <textarea id="ig-notes" rows="4" placeholder="e.g. Change innings 3 and 4 pitcher from AJ to Huxley&#10;e.g. Keep Harvey in outfield for the rest of the game&#10;e.g. Nolan B is injured &#8212; remove from game plan"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-ingame')">Cancel</button>
+      <button class="btn btn-amber" id="ig-apply-btn" onclick="applyInGameAdjustment()">&#9889; Replan Remaining Innings</button>
+    </div>
+    <div class="ig-loading" id="ig-loading">
+      <div class="spinner" style="margin:0 auto 10px"></div>
+      <div style="font-family:var(--font-display);font-size:13px;letter-spacing:1px;color:var(--amber)">REPLANNING&#8230;</div>
+    </div>
+  </div>
+</div>
+
+<!-- Sync modal -->
+<div class="modal-overlay" id="modal-sync">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-title">&#8645; Sync <span style="color:var(--orange)">Data</span></div>
+    <div class="modal-sub" style="margin-bottom:16px">Move your roster, history and setup between devices.</div>
+
+    <div class="sync-section">
+      <div class="sync-section-title">EXPORT &#8212; SEND TO ANOTHER DEVICE</div>
+      <div style="font-size:13px;color:var(--grey3);margin-bottom:10px">Downloads a JSON file. AirDrop, email, or save to iCloud/Google Drive, then import on your other device.</div>
+      <button class="btn btn-primary" onclick="exportData();closeModal('modal-sync')">&#8595; Export &amp; Download</button>
+    </div>
+
+    <div class="sync-section">
+      <div class="sync-section-title">IMPORT &#8212; RECEIVE FROM ANOTHER DEVICE</div>
+      <div style="font-size:13px;color:var(--grey3);margin-bottom:10px">Select the JSON file you exported from your other device.</div>
+      <button class="btn" onclick="document.getElementById('sync-import-file').click()">&#8593; Select JSON File</button>
+      <input type="file" id="sync-import-file" accept=".json" style="display:none" onchange="importData(this);closeModal('modal-sync')">
+    </div>
+
+    <div class="sync-section" style="background:rgba(28,126,214,0.06);border-color:rgba(28,126,214,0.2)">
+      <div class="sync-section-title" style="color:#74c0fc">AUTO SYNC &#8212; JSONBIN</div>
+      <div style="font-size:12px;color:var(--grey3);margin-bottom:8px">For automatic cross-device sync, configure JSONBin in Settings. Free at jsonbin.io.</div>
+      <button class="btn btn-sm" onclick="closeModal('modal-sync');switchTab('settings')">Go to Settings &#8594;</button>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-sync')">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════
+//  STATE
+// ════════════════════════════════
+let S = {
+  players: [],
+  gameInfo: { date:'', ha:'', opp:'', team:'Gateway Flyers U11 #2' },
+  setup: {
+    numInnings: 6,
+    absent: [],
+    restrictions: {},
+    zonePref: {},
+    assignments: [],   // per-inning: [{inning, pitcher, catcher}]
+    toggles: { repeatPos:true, noConsec:true, equalBench:true }
+  },
+  gameHistory: [],
+  lastPlan: null
+};
+
+const OUTFIELD = ['RF','CF','LF'];
+const INFIELD  = ['3B','SS','2B','1B'];
+const ALL_POS  = ['RF','CF','LF','3B','SS','2B','1B'];
+const POS_FULL = {RF:'Right Field',CF:'Center Field',LF:'Left Field','3B':'Third Base',SS:'Shortstop','2B':'Second Base','1B':'First Base'};
+const PERMANENT_ROSTER = ['AJ','Cole','Grayson','Hamish','Harvey','Huxley','Jasper','Josh','Nolan B','Nolan S','Parker','Sam','Sheamus'];
+
+// ════════════════════════════════
+//  PERSIST
+// ════════════════════════════════
+function save(){
+  localStorage.setItem('fp2_state', JSON.stringify(S));
+  // Auto-push to JSONBin if configured
+  const jbKey=localStorage.getItem('fp2_jb_key');
+  const jbBin=localStorage.getItem('fp2_jb_bin');
+  if(jbKey && jbBin){
+    fetch('https://api.jsonbin.io/v3/b/'+jbBin, {
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Master-Key':jbKey},
+      body:JSON.stringify({...S,_synced:new Date().toISOString()})
+    }).then(r=>{ if(r.ok) setCloudStatus('☁ Auto-synced — '+new Date().toLocaleTimeString(),'ok'); }).catch(()=>{});
+  }
+}
+
+function load(){
+  const raw=localStorage.getItem('fp2_state');
+  if(raw){ try{ const d=JSON.parse(raw); S={...S,...d}; fixSetup(); }catch(e){} }
+  const key=localStorage.getItem('fp2_apikey');
+  if(key){ const el=document.getElementById('api-key-input'); if(el) el.value=key; showKeyStatus(true); }
+  loadCloudConfig();
+}
+
+function fixSetup(){
+  if(!S.setup) S.setup={numInnings:6,absent:[],restrictions:{},zonePref:{},assignments:[],toggles:{repeatPos:true,noConsec:true,equalBench:true}};
+  if(!S.setup.zonePref)   S.setup.zonePref={};
+  if(!S.setup.toggles)    S.setup.toggles={repeatPos:true,noConsec:true,equalBench:true};
+  if(!S.gameInfo)         S.gameInfo={date:'',ha:'',opp:'',team:'Gateway Flyers U11 #2'};
+  if(!S.gameHistory)      S.gameHistory=[];
+  const n=S.setup.numInnings||6;
+  // Migrate old pitchBlock-based assignments to per-inning format
+  if(S.setup.assignments.length && S.setup.assignments[0]?.inningStart!==undefined){
+    const old=S.setup.assignments;
+    S.setup.assignments=Array.from({length:n},(_,i)=>{
+      const blk=old.find(a=>a.inningStart<=i+1 && a.inningEnd>=i+1)||{};
+      return {inning:i+1, pitcher:blk.pitcher||'', catcher:blk.catcher||''};
+    });
+  }
+  if(!S.setup.assignments.length || S.setup.assignments[0]?.inning===undefined){
+    S.setup.assignments=Array.from({length:n},(_,i)=>({inning:i+1,pitcher:'',catcher:''}));
+  }
+  // Ensure correct length
+  while(S.setup.assignments.length<n) S.setup.assignments.push({inning:S.setup.assignments.length+1,pitcher:'',catcher:''});
+  S.setup.assignments=S.setup.assignments.slice(0,n);
+  S.setup.assignments.forEach((a,i)=>a.inning=i+1);
+}
+
+// ════════════════════════════════
+//  TABS
+// ════════════════════════════════
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el.dataset.tab===t));
+  document.querySelectorAll('.panel').forEach(el=>el.classList.toggle('active',el.id==='panel-'+t));
+  if(t==='setup')    { renderSetup(); syncGameInfoFields(); }
+  if(t==='gameplan') renderGamePlanTab();
+  if(t==='history')  renderHistoryPanel();
+}
+
+// ════════════════════════════════
+//  GAME INFO
+// ════════════════════════════════
+function syncGameInfoFromFields(){
+  S.gameInfo.date=document.getElementById('gi-date')?.value||'';
+  S.gameInfo.ha  =document.getElementById('gi-ha')?.value||'';
+  S.gameInfo.opp =document.getElementById('gi-opp')?.value||'';
+  S.gameInfo.team='Gateway Flyers U11 #2';
+  save(); updateGamePill();
+}
+function syncGameInfoFields(){
+  const d=document.getElementById('gi-date'); if(d) d.value=S.gameInfo.date||todayStr();
+  const h=document.getElementById('gi-ha');   if(h) h.value=S.gameInfo.ha||'';
+  const o=document.getElementById('gi-opp');  if(o) o.value=S.gameInfo.opp||'';
+}
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(d){ if(!d)return''; const dt=new Date(d+'T12:00:00'); return dt.toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric'}); }
+function updateGamePill(){
+  const p=document.getElementById('game-pill');
+  const t=document.getElementById('game-pill-text');
+  const g=S.gameInfo;
+  const parts=[];
+  if(g.date) parts.push(fmtDate(g.date));
+  if(g.ha)   parts.push(g.ha);
+  if(g.opp)  parts.push('vs '+g.opp);
+  if(parts.length){ t.textContent=parts.join(' · '); p.classList.add('has-data'); }
+  else { t.textContent='Set game info'; p.classList.remove('has-data'); }
+}
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+// ════════════════════════════════
+//  ROSTER
+// ════════════════════════════════
+function renderRoster(){
+  const grid=document.getElementById('player-grid');
+  if(!S.players.length){
+    grid.innerHTML='<div class="empty"><div class="empty-icon">👥</div><div class="empty-text">No players yet</div></div>';
+    return;
+  }
+  const at=S.players.filter(p=>(p.availability||'attending')==='attending').length;
+  const na=S.players.filter(p=>p.availability==='not-attending').length;
+  const uk=S.players.filter(p=>p.availability==='unknown').length;
+  const summary=`<div id="roster-summary" style="display:flex;gap:14px;padding:0 2px 12px;border-bottom:1px solid var(--border);margin-bottom:8px;flex-wrap:wrap">
+    <span style="font-size:12px;color:#69db7c">✓ ${at} Attending</span>
+    ${na?`<span style="font-size:12px;color:#ff6b6b">✕ ${na} Not Attending</span>`:''}
+    ${uk?`<span style="font-size:12px;color:var(--amber)">? ${uk} Unknown</span>`:''}
+  </div>`;
+  const rows=S.players.map(p=>{
+    const isTP=!!p.tp;
+    const avail=p.availability||'attending';
+    const notAtt=avail==='not-attending';
+    const init=isTP?'TP':((p.name||'').split(' ').map(w=>w[0]).join('').slice(0,2));
+    const avCls=isTP?'player-avatar tp-av':'player-avatar';
+    return `<div class="player-row${isTP?' is-tp':''}${notAtt?' not-attending':''}" id="prow-${p.id}">
+      <div class="${avCls}">${init}</div>
+      <div class="player-main">
+        <div class="player-name${isTP?' tp-name':''}">${p.name}</div>
+        ${isTP?`<div class="player-meta">From: ${p.tpTeam||'—'}</div>`:''}
+      </div>
+      <div class="player-right">
+        ${isTP?'<span class="badge b-tp">TP</span>':''}
+        <select class="avail-select status-${avail}" onchange="setAvailability('${p.id}',this.value)">
+          <option value="attending"${avail==='attending'?' selected':''}>✓ Attending</option>
+          <option value="not-attending"${avail==='not-attending'?' selected':''}>✕ Not Attending</option>
+          <option value="unknown"${avail==='unknown'?' selected':''}>? Unknown</option>
+        </select>
+      </div>
+    </div>`;
+  }).join('');
+  grid.innerHTML=summary+rows;
+}
+
+function setAvailability(id,value){
+  const p=S.players.find(x=>x.id===id); if(!p) return;
+  p.availability=value; save();
+  const row=document.getElementById('prow-'+id);
+  const sel=row?.querySelector('.avail-select');
+  if(row) row.classList.toggle('not-attending',value==='not-attending');
+  if(sel) sel.className='avail-select status-'+value;
+  const at=S.players.filter(p=>(p.availability||'attending')==='attending').length;
+  const na=S.players.filter(p=>p.availability==='not-attending').length;
+  const uk=S.players.filter(p=>p.availability==='unknown').length;
+  const sumEl=document.getElementById('roster-summary');
+  if(sumEl) sumEl.innerHTML=
+    `<span style="font-size:12px;color:#69db7c">✓ ${at} Attending</span>`+
+    (na?`<span style="font-size:12px;color:#ff6b6b">✕ ${na} Not Attending</span>`:'')+
+    (uk?`<span style="font-size:12px;color:var(--amber)">? ${uk} Unknown</span>`:'');
+}
+
+function openTempPlayerModal(){
+  ['tp-first','tp-last','tp-team'].forEach(id=>document.getElementById(id).value='');
+  openModal('modal-tp');
+}
+function addTempPlayer(){
+  const fn=document.getElementById('tp-first').value.trim();
+  const ln=document.getElementById('tp-last').value.trim();
+  const team=document.getElementById('tp-team').value.trim();
+  if(!fn){ alert('Enter at least a first name.'); return; }
+  const name=ln?`${fn} ${ln}`:fn;
+  S.players.push({id:'p'+Date.now(),name,tp:true,tpTeam:team,availability:'attending'});
+  save(); renderRoster(); closeModal('modal-tp');
+}
+
+// 4. Confirm & Submit Roster
+function confirmRoster(){
+  const at=activePlayers().length;
+  if(!confirm(`Confirm roster with ${at} attending player${at!==1?'s':''}?\n\nThis resets Game Setup and the current game plan for a fresh start.\nHistory and API key are kept.`)) return;
+  const n=S.setup.numInnings;
+  S.setup.assignments=Array.from({length:n},(_,i)=>({inning:i+1,pitcher:'',catcher:''}));
+  S.setup.restrictions={};
+  S.setup.zonePref={};
+  S.gameInfo={date:todayStr(),ha:'',opp:'',team:'Gateway Flyers U11 #2'};
+  S.lastPlan=null;
+  save();
+  const btn=document.querySelector('.confirm-roster-btn');
+  btn.textContent='✓ Confirmed!'; btn.style.background='var(--green)';
+  setTimeout(()=>{ btn.textContent='✓ Confirm & Submit Roster'; btn.style.background=''; switchTab('setup'); }, 1000);
+}
+
+// ════════════════════════════════
+//  GAME SETUP
+// ════════════════════════════════
+function renderSetup(){
+  document.getElementById('num-innings').value=S.setup.numInnings;
+  document.getElementById('tog-repeat-pos').checked  =S.setup.toggles.repeatPos;
+  document.getElementById('tog-no-consec').checked   =S.setup.toggles.noConsec;
+  document.getElementById('tog-equal-bench').checked =S.setup.toggles.equalBench;
+  renderInningAssignments();
+  renderRestrictions();
+  renderZonePrefs();
+}
+
+function onInningsChange(){
+  const n=parseInt(document.getElementById('num-innings').value);
+  S.setup.numInnings=n;
+  const cur=S.setup.assignments;
+  S.setup.assignments=Array.from({length:n},(_,i)=>cur[i]||{inning:i+1,pitcher:'',catcher:''});
+  S.setup.assignments.forEach((a,i)=>a.inning=i+1);
+  save(); renderInningAssignments();
+}
+
+// 2. Per-inning assignment (not block-based)
+function renderInningAssignments(){
+  const n=S.setup.numInnings;
+  while(S.setup.assignments.length<n) S.setup.assignments.push({inning:S.setup.assignments.length+1,pitcher:'',catcher:''});
+  S.setup.assignments=S.setup.assignments.slice(0,n);
+  S.setup.assignments.forEach((a,i)=>a.inning=i+1);
+  const active=activePlayers();
+  const opts='<option value="">— none —</option>'+active.map(p=>`<option value="${p.id}">${p.name}${p.tp?' (TP)':''}</option>`).join('');
+  document.getElementById('inning-assignments').innerHTML=S.setup.assignments.map((a,i)=>{
+    const pSel=opts.replace(`value="${a.pitcher}"`,`value="${a.pitcher}" selected`);
+    const cSel=opts.replace(`value="${a.catcher}"`,`value="${a.catcher}" selected`);
+    return `<div class="inning-block">
+      <div class="ib-header"><span class="ib-num">INN ${a.inning}</span></div>
+      <div class="row2">
+        <div class="fg"><label>⚾ Pitcher</label><select onchange="updateAsgn(${i},'pitcher',this.value)">${pSel}</select></div>
+        <div class="fg"><label>🥊 Catcher</label><select onchange="updateAsgn(${i},'catcher',this.value)">${cSel}</select></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateAsgn(i,f,v){ S.setup.assignments[i][f]=v; save(); }
+
+function renderRestrictions(){
+  const active=activePlayers();
+  if(!active.length){ document.getElementById('restriction-list').innerHTML='<div style="color:var(--grey3);font-size:13px">No active players.</div>'; return; }
+  document.getElementById('restriction-list').innerHTML=active.map(p=>{
+    const cur=S.setup.restrictions[p.id]||'none';
+    return `<div class="restrict-row">
+      <div class="restrict-name${p.tp?' tp-name':''}">${p.name}${p.tp?` <span class="badge b-tp">TP</span>`:''}</div>
+      <select class="restrict-sel" onchange="updateRestriction('${p.id}',this.value)">
+        <option value="none"${cur==='none'?' selected':''}>No restriction</option>
+        <option value="no-catch"${cur==='no-catch'?' selected':''}>Cannot catch</option>
+        <option value="no-pitch"${cur==='no-pitch'?' selected':''}>Cannot pitch</option>
+        <option value="late-first"${cur==='late-first'?' selected':''}>May be late (bench inn 1)</option>
+        <option value="late-first-no-catch"${cur==='late-first-no-catch'?' selected':''}>Late + no catch</option>
+      </select>
+    </div>`;
+  }).join('');
+}
+function updateRestriction(id,v){ S.setup.restrictions[id]=v; save(); }
+
+function renderZonePrefs(){
+  const active=activePlayers();
+  if(!active.length){ document.getElementById('zone-pref-list').innerHTML='<div style="color:var(--grey3);font-size:13px">No active players.</div>'; return; }
+  document.getElementById('zone-pref-list').innerHTML=active.map(p=>{
+    const cur=S.setup.zonePref[p.id]||'none';
+    return `<div class="zone-select-row">
+      <div class="zone-name${p.tp?' tp-name':''}">${p.name}</div>
+      <div class="zone-btns">
+        <button class="zone-btn${cur==='none'?' active-none':''}" onclick="setZone('${p.id}','none')">Any</button>
+        <button class="zone-btn${cur==='outfield'?' active-out':''}" onclick="setZone('${p.id}','outfield')">Outfield</button>
+        <button class="zone-btn${cur==='infield'?' active-inf':''}" onclick="setZone('${p.id}','infield')">Infield</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function setZone(id,v){ S.setup.zonePref[id]=v; save(); renderZonePrefs(); }
+
+function saveSetup(){
+  syncGameInfoFromFields();
+  S.setup.toggles.repeatPos  =document.getElementById('tog-repeat-pos').checked;
+  S.setup.toggles.noConsec   =document.getElementById('tog-no-consec').checked;
+  S.setup.toggles.equalBench =document.getElementById('tog-equal-bench').checked;
+  save();
+  const btn=document.querySelector('#panel-setup .btn-primary');
+  const orig=btn.textContent; btn.textContent='✓ Saved!';
+  setTimeout(()=>btn.textContent=orig, 1500);
+}
+
+// ════════════════════════════════
+//  PROMPT BUILDER
+// ════════════════════════════════
+function buildPrompt(extraOverride){
+  const active      = activePlayers();
+  const n           = S.setup.numInnings;
+  const t           = S.setup.toggles;
+  const fieldPos    = activeFieldPositions();
+  const numFielders = fieldPos.length;
+  const activePerInning = 1 + 1 + numFielders;
+  const benchPerInning  = Math.max(0, active.length - activePerInning);
+  const totalBenchSlots = benchPerInning * n;
+  const openPositions   = ['CF','2B'].filter(p=>!fieldPos.includes(p));
+
+  // Pre-calculate exact per-player bench targets
+  const pitInnings={}, catInnings={};
+  S.setup.assignments.forEach(a=>{
+    const pn=S.players.find(p=>p.id===a.pitcher)?.name;
+    const cn=S.players.find(p=>p.id===a.catcher)?.name;
+    if(pn) pitInnings[pn]=(pitInnings[pn]||0)+1;
+    if(cn) catInnings[cn]=(catInnings[cn]||0)+1;
+  });
+  const baseBench  = Math.floor(totalBenchSlots / Math.max(active.length,1));
+  const extraCount = totalBenchSlots % Math.max(active.length,1);
+  const benchTargets = active.map((p,i)=>{
+    const forced=(pitInnings[p.name]||0)+(catInnings[p.name]||0);
+    const target=Math.min(i<extraCount ? baseBench+1 : baseBench, n-forced);
+    return `  ${p.name}: bench exactly ${Math.max(0,target)} innings (pitching:${pitInnings[p.name]||0}, catching:${catInnings[p.name]||0})`;
+  }).join('\n');
+
+  const asgnLines = S.setup.assignments.map(a=>{
+    const pit=S.players.find(p=>p.id===a.pitcher)?.name||'TBD';
+    const cat=S.players.find(p=>p.id===a.catcher)?.name||'TBD';
+    return `  Inning ${a.inning}: Pitcher=${pit}, Catcher=${cat}`;
+  }).join('\n');
+
+  const rlines = active.map(p=>{
+    const r=S.setup.restrictions[p.id]||'none';
+    const z=S.setup.zonePref[p.id]||'none';
+    const parts=[];
+    if(r==='no-catch'||r==='late-first-no-catch') parts.push('cannot play Catcher');
+    if(r==='no-pitch') parts.push('cannot pitch');
+    if(r==='late-first'||r==='late-first-no-catch') parts.push('bench inning 1 (may be late)');
+    if(z==='outfield') parts.push('outfield only ('+fieldPos.filter(p=>OUTFIELD.includes(p)).join('/')+')');
+    if(z==='infield')  parts.push('infield only ('+fieldPos.filter(p=>INFIELD.includes(p)).join('/')+')');
+    if(p.tp) parts.push('TEMPORARY PLAYER — set tp:true in playerSummary');
+    return parts.length ? `  ${p.name}: ${parts.join(', ')}` : null;
+  }).filter(Boolean).join('\n');
+
+  const shortNote = openPositions.length
+    ? `\nSHORT-HANDED (${active.length} players): OPEN positions — ${openPositions.join(', ')}. Use ONLY: ${fieldPos.join(', ')}.\n`
+    : '';
+
+  const posExample = fieldPos.reduce((o,p)=>{o[p]='Name';return o},{});
+  const extraTxt   = (extraOverride || document.getElementById('extra-notes')?.value || '').trim();
+
+  return `You are a baseball rotation planner. Generate a precise ${n}-inning fielding plan.
+
+━━━ PLAYERS (${active.length} active) ━━━
+${active.map(p=>p.name+(p.tp?' [TP]':'')).join(', ')}
+
+━━━ STRUCTURE PER INNING ━━━
+Active: ${activePerInning} (1 pitcher + 1 catcher + ${numFielders} fielders)
+Bench:  ${benchPerInning}
+Positions: ${fieldPos.join(', ')}
+${shortNote}
+━━━ PITCHER & CATCHER — PER INNING ━━━
+${asgnLines || '  None assigned'}
+
+━━━ RESTRICTIONS & ZONE PREFS ━━━
+${rlines || '  None'}
+
+━━━ MANDATORY BENCH TARGETS ━━━
+Total bench slots: ${totalBenchSlots} (${benchPerInning}/inning × ${n} innings)
+${benchTargets}
+THESE ARE EXACT — not approximate. Your output must match them.
+
+━━━ RULES ━━━
+1. BENCH TARGETS ARE MANDATORY — match them exactly.
+2. A player who pitches or catches an inning is ACTIVE that inning — not bench.
+3. ${t.noConsec ? 'NO CONSECUTIVE BENCH — no player sits two innings in a row.' : 'Consecutive bench innings are allowed.'}
+4. POSITION ROTATION — fielders rotate: ${fieldPos.join('→')}. Each inning fielded, advance one slot.
+5. ${t.repeatPos ? 'Avoid assigning same field position back-to-back for same player.' : ''}
+6. Respect all restrictions and zone preferences above.
+${extraTxt ? `7. ADDITIONAL: ${extraTxt}` : ''}
+
+━━━ RESPOND WITH VALID JSON ONLY — no markdown, no fences ━━━
+{
+  "innings": [
+    {
+      "inning": 1,
+      "pitcher": "Name",
+      "catcher": "Name",
+      "positions": ${JSON.stringify(posExample)},
+      "bench": ${JSON.stringify(Array(benchPerInning).fill('Name'))}
+    }
+  ],
+  "warnings": [],
+  "playerSummary": [
+    {"name":"Name","tp":false,"innings":${JSON.stringify(Array(n).fill('RF'))},"benchCount":0}
+  ]
+}
+playerSummary.innings: exactly ${n} entries. P=pitching, C=catching, —=bench, position abbrev otherwise.`;
+}
+
+// ════════════════════════════════
+//  API CALL HELPER
+// ════════════════════════════════
+async function callClaude(prompt, opts={}){
+  const { loadingId='gp-loading-wrap', errId='gp-err-box', btnId=null, maxTokens=4096 } = opts;
+  const apiKey=localStorage.getItem('fp2_apikey');
+  if(!apiKey){ showErr(errId,'No API key — go to Settings.'); return null; }
+  if(btnId) document.getElementById(btnId).disabled=true;
+  const loadEl=document.getElementById(loadingId);
+  if(loadEl) loadEl.classList.add('on');
+  const errEl=document.getElementById(errId);
+  if(errEl) errEl.classList.remove('on');
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})
+    });
+    if(!resp.ok){ const e=await resp.json(); throw new Error(e.error?.message||`API ${resp.status}`); }
+    const data=await resp.json();
+    const txt=data.content?.[0]?.text||'';
+    const clean=txt.replace(/```json|```/g,'').trim();
+    return JSON.parse(clean);
+  }catch(e){
+    showErr(errId,'Error: '+e.message);
+    return null;
+  }finally{
+    if(btnId) document.getElementById(btnId).disabled=false;
+    if(loadEl) loadEl.classList.remove('on');
+  }
+}
+
+function showErr(id,msg){
+  const el=document.getElementById(id);
+  if(el){ el.textContent=msg; el.classList.add('on'); }
+}
+
+// ════════════════════════════════
+//  5. GENERATE FROM SETUP TAB
+// ════════════════════════════════
+async function generateFromSetup(){
+  syncGameInfoFromFields();
+  const active=activePlayers();
+  if(active.length<7){ showErr('err-box',`Need at least 7 active players. Currently have ${active.length}.`); return; }
+  document.getElementById('err-box').classList.remove('on');
+  const plan=await callClaude(buildPrompt(),{loadingId:'loading-wrap',errId:'err-box',btnId:'setup-gen-btn'});
+  if(!plan) return;
+  S.lastPlan=plan;
+  save();
+  logGame(plan);
+  switchTab('gameplan');
+}
+
+// Regenerate from Game Plan toolbar
+async function regeneratePlan(){
+  const active=activePlayers();
+  if(active.length<7){ showErr('gp-err-box','Need at least 7 active players.'); return; }
+  const plan=await callClaude(buildPrompt(),{loadingId:'gp-loading-wrap',errId:'gp-err-box'});
+  if(!plan) return;
+  S.lastPlan=plan; save(); logGame(plan); renderPlan(plan);
+}
+
+// 6. Randomize
+async function randomizePlan(){
+  const active=activePlayers();
+  if(active.length<7){ showErr('gp-err-box','Need at least 7 active players.'); return; }
+  const shuffleNote='ADDITIONAL: Produce a DIFFERENT rotation from any previous plan. Vary which players start in which positions and when they bench, while strictly following all logic rules.';
+  const plan=await callClaude(buildPrompt(shuffleNote),{loadingId:'gp-loading-wrap',errId:'gp-err-box'});
+  if(!plan) return;
+  S.lastPlan=plan; save(); logGame(plan); renderPlan(plan);
+}
+
+// ════════════════════════════════
+//  RENDER PLAN
+// ════════════════════════════════
+function renderGamePlanTab(){
+  const toolbar=document.getElementById('gp-toolbar');
+  const out    =document.getElementById('plan-output');
+  const empty  =document.getElementById('gp-empty');
+  if(!S.lastPlan){
+    if(toolbar) toolbar.style.display='none';
+    out.style.display='none';
+    empty.style.display='block';
+    return;
+  }
+  empty.style.display='none';
+  out.style.display='block';
+  if(toolbar) toolbar.style.display='flex';
+  renderPlan(S.lastPlan);
+}
+
+function renderPlan(plan){
+  syncGameInfoFromFields();
+  const g=S.gameInfo;
+  const parts=[];
+  if(g.team) parts.push(g.team);
+  if(g.ha)   parts.push(g.ha);
+  if(g.opp)  parts.push('vs '+g.opp);
+  if(g.date) parts.push(fmtDate(g.date));
+  document.getElementById('plan-game-meta').textContent=parts.join(' · ');
+
+  const wb=document.getElementById('warning-bar');
+  if(plan.warnings?.length){ wb.innerHTML='⚠ '+plan.warnings.join(' · '); wb.classList.add('on'); }
+  else wb.classList.remove('on');
+
+  document.getElementById('innings-output').innerHTML=plan.innings.map(inn=>renderInningCard(inn,plan)).join('');
+  renderSummaryTable(plan);
+}
+
+function posZone(pos){ return OUTFIELD.includes(pos)?'out':INFIELD.includes(pos)?'inf':'cat'; }
+function posPillCls(pos){ return 'pp-'+posZone(pos); }
+
+function renderInningCard(inn, plan){
+  const posEntries=Object.entries(inn.positions||{});
+  const prevInn=plan?.innings?.find(x=>x.inning===inn.inning-1);
+  const repeatMap={};
+  if(prevInn && S.setup.toggles.repeatPos){
+    posEntries.forEach(([pos,name])=>{
+      const prevPos=Object.entries(prevInn.positions||{}).find(([,n])=>n===name)?.[0];
+      if(prevPos===pos) repeatMap[name]=pos;
+    });
+  }
+  const benchWarnNames=[];
+  if(S.setup.toggles.noConsec && prevInn){
+    (inn.bench||[]).forEach(name=>{ if((prevInn.bench||[]).includes(name)) benchWarnNames.push(name); });
+  }
+
+  const posRows=posEntries.map(([pos,name])=>{
+    const isRepeat=repeatMap[name]===pos;
+    const isTP=S.players.find(p=>p.name===name&&p.tp);
+    const warnHtml=isRepeat?`<span class="warn-icon" title="${name} played ${pos} last inning too">⚠</span>`:'';
+    return `<div class="pr${isRepeat?' warn-repeat':''}" id="pr-${inn.inning}-${pos}"
+      draggable="true"
+      ondragstart="dragStart(event,'field','${inn.inning}','${pos}','${name}')"
+      ondragover="dragOver(event)"
+      ondragleave="dragLeave(event)"
+      ondrop="dragDrop(event,'field','${inn.inning}','${pos}')">
+      <span class="pos-pill ${posPillCls(pos)}">${pos}</span>
+      <span class="pos-full">${POS_FULL[pos]||pos}</span>
+      <span class="pos-player${isTP?' tp-name':''}">${name}${isTP?` <span class="badge b-tp" style="font-size:9px">TP</span>`:''}</span>
+      ${warnHtml}
+      <button class="pr-edit" onclick="openEditModal(${inn.inning},'${pos}','${name}')">EDIT</button>
+      <button class="pr-injured" onclick="markInjured(${inn.inning},'${name}')" title="Mark ${name} as injured">🚑</button>
+    </div>`;
+  }).join('');
+
+  // Bench chips — safe index-based onclick
+  const benchHtml=(inn.bench||[]).map((name,idx)=>{
+    const isTP=S.players.find(p=>p.name===name&&p.tp);
+    return `<span class="bc${isTP?' tp-bc':''}"
+      draggable="true"
+      ondragstart="dragStart(event,'bench','${inn.inning}',${idx},'${name}')"
+      ondragover="dragOver(event)"
+      ondragleave="dragLeave(event)"
+      ondrop="dragDrop(event,'bench','${inn.inning}',${idx})">
+      ${name}${isTP?' <span style="font-size:9px">TP</span>':''}
+      <button class="bc-edit" onclick="openBenchEditModalByIdx(${inn.inning},${idx})">EDIT</button>
+    </span>`;
+  }).join('');
+
+  const benchWarn=benchWarnNames.length?`<div class="bench-warn on">⚠ Consecutive bench: ${benchWarnNames.join(', ')}</div>`:'<div class="bench-warn"></div>';
+
+  return `<div class="ic" id="ic-${inn.inning}">
+    <div class="ic-head">
+      <div class="ic-num"><small>INNING</small>${inn.inning}</div>
+      <div class="ic-badges">
+        <span class="pit-badge">⚾ ${inn.pitcher}</span>
+        <span class="cat-badge">🥊 ${inn.catcher}</span>
+      </div>
+    </div>
+    <div class="pos-rows">${posRows}</div>
+    <div class="bench-foot">
+      <div class="bench-lbl">BENCH</div>
+      <div class="bench-chips">${benchHtml||'<span style="color:var(--grey3);font-size:11px">None</span>'}</div>
+    </div>
+    ${benchWarn}
+  </div>`;
+}
+
+function renderSummaryTable(plan){
+  const n=S.setup.numInnings;
+  const thead=`<thead><tr><th>Player</th>${Array.from({length:n},(_,i)=>`<th>Inn ${i+1}</th>`).join('')}<th>Bench</th></tr></thead>`;
+  function cellCls(v){
+    if(!v||v==='—') return 'sc-ben';
+    if(v==='P') return 'sc-pit'; if(v==='C') return 'sc-cat';
+    if(OUTFIELD.includes(v)) return 'sc-out'; if(INFIELD.includes(v)) return 'sc-inf';
+    return 'sc-ben';
+  }
+  const tbody='<tbody>'+(plan.playerSummary||[]).map(ps=>{
+    const isTp=ps.tp||S.players.find(p=>p.name===ps.name&&p.tp);
+    const cells=(ps.innings||[]).map((v,i)=>{
+      const prev=ps.innings[i-1];
+      const isRepeat=S.setup.toggles.repeatPos&&v&&v!=='—'&&v!=='P'&&v!=='C'&&v===prev;
+      return `<td><span class="s-cell ${cellCls(v)}${isRepeat?' sc-warn':''}">${v||'—'}</span></td>`;
+    }).join('');
+    return `<tr>
+      <td class="s-player${isTp?' tp-s':''}">${ps.name}${isTp?` <span class="badge b-tp" style="font-size:9px;vertical-align:middle">TP</span>`:''}</td>
+      ${cells}
+      <td class="s-count">${ps.benchCount??'—'}</td>
+    </tr>`;
+  }).join('')+'</tbody>';
+  document.getElementById('sum-table').innerHTML=thead+tbody;
+}
+
+// ════════════════════════════════
+//  INLINE EDIT
+// ════════════════════════════════
+let editCtx={inning:null,pos:null,player:null,fromBench:false};
+
+function openEditModal(inning,pos,player){
+  editCtx={inning,pos,player,fromBench:false};
+  document.getElementById('edit-modal-title').textContent=`${player} — ${POS_FULL[pos]||pos}`;
+  document.getElementById('edit-modal-sub').textContent=`Inning ${inning}: Move ${player} from ${pos}.`;
+  const inn=S.lastPlan?.innings?.find(x=>x.inning===inning);
+  const pid=S.players.find(p=>p.name===player)?.id;
+  const zonePref=S.setup.zonePref[pid]||'none';
+  const fieldOpts=activeFieldPositions().filter(p=>p!==pos).map(p=>{
+    const zone=OUTFIELD.includes(p)?'outfield':'infield';
+    const disabled=zonePref!=='none'&&zone!==zonePref;
+    const occ=inn?.positions[p];
+    return `<option value="field:${p}"${disabled?' disabled':''}>${p} — ${occ?'swap with '+occ:POS_FULL[p]}</option>`;
+  }).join('');
+  const benchPlayers=inn?.bench||[];
+  const benchOpts=benchPlayers.length
+    ?'<optgroup label="── Send to bench, bring in ──">'+benchPlayers.map(b=>`<option value="bench:${b}">Bench — swap with ${b}</option>`).join('')+'</optgroup>'
+    :'';
+  document.getElementById('edit-pos-sel').innerHTML=fieldOpts+benchOpts;
+  document.getElementById('edit-swap-note').textContent='Select a field position to swap, or a bench player to swap with.';
+  openModal('modal-edit');
+}
+
+function openBenchEditModalByIdx(inning,idx){
+  const inn=S.lastPlan?.innings?.find(x=>x.inning===inning);
+  if(!inn) return;
+  const player=(inn.bench||[])[idx];
+  if(player===undefined) return;
+  openBenchEditModal(inning,player);
+}
+
+function openBenchEditModal(inning,player){
+  editCtx={inning,pos:null,player,fromBench:true};
+  document.getElementById('edit-modal-title').textContent=`${player} — Bench`;
+  document.getElementById('edit-modal-sub').textContent=`Inning ${inning}: Move ${player} from bench to a field position.`;
+  const inn=S.lastPlan?.innings?.find(x=>x.inning===inning);
+  const pid=S.players.find(p=>p.name===player)?.id;
+  const zonePref=S.setup.zonePref[pid]||'none';
+  const opts=activeFieldPositions().map(p=>{
+    const zone=OUTFIELD.includes(p)?'outfield':'infield';
+    const disabled=zonePref!=='none'&&zone!==zonePref;
+    const occ=inn?.positions[p];
+    return `<option value="field:${p}"${disabled?' disabled':''}>${p} — ${occ?'swap with '+occ+' ('+occ+' goes to bench)':POS_FULL[p]+' (empty)'}</option>`;
+  }).join('');
+  document.getElementById('edit-pos-sel').innerHTML=opts;
+  document.getElementById('edit-swap-note').textContent='The current occupant (if any) moves to bench.';
+  openModal('modal-edit');
+}
+
+function applyEdit(){
+  const {inning,pos,player,fromBench}=editCtx;
+  const sel=document.getElementById('edit-pos-sel').value;
+  if(!sel||!S.lastPlan) return;
+  const plan=S.lastPlan;
+  const inn=plan.innings.find(x=>x.inning===inning);
+  if(!inn){ closeModal('modal-edit'); return; }
+  // Safe split on FIRST colon only
+  const ci=sel.indexOf(':');
+  const type=sel.slice(0,ci);
+  const target=sel.slice(ci+1);
+  if(fromBench){
+    inn.bench=(inn.bench||[]).filter(n=>n!==player);
+    const displaced=inn.positions[target];
+    inn.positions[target]=player;
+    if(displaced) inn.bench.push(displaced);
+  }else if(type==='field'){
+    const occupant=inn.positions[target];
+    inn.positions[target]=player;
+    if(occupant) inn.positions[pos]=occupant;
+    else delete inn.positions[pos];
+  }else if(type==='bench'){
+    const benchPlayer=target;
+    inn.positions[pos]=benchPlayer;
+    inn.bench=(inn.bench||[]).filter(n=>n!==benchPlayer);
+    inn.bench.push(player);
+  }
+  rebuildSummary(plan);
+  renderPlan(plan);
+  closeModal('modal-edit');
+}
+
+function rebuildSummary(plan){
+  const active=activePlayers();
+  plan.playerSummary=(plan.playerSummary||active.map(p=>({name:p.name,tp:p.tp,innings:[],benchCount:0}))).map(ps=>{
+    const innings=plan.innings.map(inn=>{
+      if(inn.pitcher===ps.name) return 'P';
+      if(inn.catcher===ps.name) return 'C';
+      if((inn.bench||[]).includes(ps.name)) return '—';
+      const p=Object.entries(inn.positions||{}).find(([,n])=>n===ps.name)?.[0];
+      return p||'—';
+    });
+    const benchCount=innings.filter(v=>v==='—').length;
+    return {...ps,innings,benchCount};
+  });
+}
+
+// ════════════════════════════════
+//  6. INJURED PLAYER
+// ════════════════════════════════
+async function markInjured(fromInning, playerName){
+  if(!confirm(`Mark ${playerName} as injured starting inning ${fromInning}?\n\nThey will be removed from all remaining innings and the plan regenerated.`)) return;
+  if(!S.lastPlan) return;
+  const completed=S.lastPlan.innings.filter(i=>i.inning<fromInning);
+  const injuredNote=`INJURED PLAYER: ${playerName} must be COMPLETELY REMOVED from innings ${fromInning} through ${S.setup.numInnings}. Do not include them anywhere — not in positions, pitcher, catcher, or bench.`;
+  const prompt=buildRemainingPrompt(fromInning, playerName, injuredNote);
+  const plan=await callClaude(prompt,{loadingId:'gp-loading-wrap',errId:'gp-err-box'});
+  if(!plan) return;
+  S.lastPlan.innings=[...completed,...plan.innings];
+  rebuildSummary(S.lastPlan);
+  save(); renderPlan(S.lastPlan);
+}
+
+function buildRemainingPrompt(fromInning, removedPlayer, extraNote){
+  const active = removedPlayer ? activePlayers().filter(p=>p.name!==removedPlayer) : activePlayers();
+  const n      = S.setup.numInnings;
+  const remaining = n - fromInning + 1;
+  const fieldPos  = activeFieldPositions();
+  const benchPerInning = Math.max(0, active.length - 1 - 1 - fieldPos.length);
+  const asgnLines = S.setup.assignments
+    .filter(a=>a.inning>=fromInning)
+    .map(a=>{
+      const pit=S.players.find(p=>p.id===a.pitcher)?.name||'TBD';
+      const cat=S.players.find(p=>p.id===a.catcher)?.name||'TBD';
+      return `  Inning ${a.inning}: Pitcher=${pit===removedPlayer?'TBD':pit}, Catcher=${cat===removedPlayer?'TBD':cat}`;
+    }).join('\n');
+  const posExample=fieldPos.reduce((o,p)=>{o[p]='Name';return o},{});
+  const rlines = active.map(p=>{
+    const r=S.setup.restrictions[p.id]||'none';
+    const z=S.setup.zonePref[p.id]||'none';
+    const parts=[];
+    if(r==='no-catch'||r==='late-first-no-catch') parts.push('cannot catch');
+    if(r==='no-pitch') parts.push('cannot pitch');
+    if(z==='outfield') parts.push('outfield only');
+    if(z==='infield')  parts.push('infield only');
+    return parts.length ? `  ${p.name}: ${parts.join(', ')}` : null;
+  }).filter(Boolean).join('\n');
+
+  return `You are a baseball rotation planner. Replan ONLY innings ${fromInning} through ${n}.
+${extraNote||''}
+
+PLAYERS FOR REMAINING INNINGS (${active.length}): ${active.map(p=>p.name).join(', ')}
+Positions: ${fieldPos.join(', ')}
+Bench per inning: ${benchPerInning}
+
+PITCHER/CATCHER:
+${asgnLines||'  None'}
+
+RESTRICTIONS:
+${rlines||'  None'}
+
+RULES: Equal bench time, no consecutive bench, rotation ${fieldPos.join('→')}.
+
+Return ONLY valid JSON for innings ${fromInning} through ${n}:
+{
+  "innings": [
+    {
+      "inning": ${fromInning},
+      "pitcher": "Name",
+      "catcher": "Name",
+      "positions": ${JSON.stringify(posExample)},
+      "bench": ${JSON.stringify(Array(Math.max(0,benchPerInning)).fill('Name'))}
+    }
+  ],
+  "warnings": []
+}`;
+}
+
+// ════════════════════════════════
+//  6. IN-GAME ADJUSTMENT
+// ════════════════════════════════
+function openInGameModal(){
+  if(!S.lastPlan){ alert('Generate a game plan first.'); return; }
+  const n=S.setup.numInnings;
+  const sel=document.getElementById('ig-from-inning');
+  sel.innerHTML=Array.from({length:n},(_,i)=>`<option value="${i+1}">Inning ${i+1}</option>`).join('');
+  document.getElementById('ig-notes').value='';
+  document.getElementById('ig-apply-btn').style.display='';
+  document.getElementById('ig-loading').style.display='none';
+  openModal('modal-ingame');
+}
+
+async function applyInGameAdjustment(){
+  const fromInning =parseInt(document.getElementById('ig-from-inning').value);
+  const type       =document.getElementById('ig-type').value;
+  const notes      =document.getElementById('ig-notes').value.trim();
+  if(!notes){ alert('Please describe the adjustment needed.'); return; }
+
+  document.getElementById('ig-apply-btn').style.display='none';
+  document.getElementById('ig-loading').style.display='block';
+
+  const completed=S.lastPlan.innings.filter(i=>i.inning<fromInning);
+  const typeLabels={general:'General adjustment',pitcher:'Pitcher change',zone:'Zone / position restriction',late:'Player arrived late',injury:'Remove injured player'};
+  const extraNote=`IN-GAME ADJUSTMENT (${typeLabels[type]}) — starting from inning ${fromInning}: ${notes}`;
+  const prompt=buildRemainingPrompt(fromInning, null, extraNote);
+  const plan=await callClaude(prompt,{loadingId:'gp-loading-wrap',errId:'gp-err-box'});
+
+  document.getElementById('ig-apply-btn').style.display='';
+  document.getElementById('ig-loading').style.display='none';
+
+  if(!plan) return;
+  S.lastPlan.innings=[...completed,...plan.innings];
+  rebuildSummary(S.lastPlan);
+  closeModal('modal-ingame');
+  save(); renderPlan(S.lastPlan);
+}
+
+// ════════════════════════════════
+//  GAME HISTORY
+// ════════════════════════════════
+function logGame(plan){
+  syncGameInfoFromFields();
+  const pitcherIds=[...new Set(S.setup.assignments.map(a=>a.pitcher).filter(Boolean))];
+  const pitNames=pitcherIds.map(id=>S.players.find(p=>p.id===id)?.name||id).filter(Boolean);
+  const entry={
+    id:'g'+Date.now(),
+    date:S.gameInfo.date||todayStr(),
+    ha:S.gameInfo.ha||'',
+    opp:S.gameInfo.opp||'',
+    team:'Gateway Flyers U11 #2',
+    pitchers:pitcherIds,
+    pitcherNames:pitNames,
+    plan:JSON.parse(JSON.stringify(plan)),
+    numInnings:S.setup.numInnings
+  };
+  S.gameHistory=S.gameHistory.filter(g=>g.date!==entry.date);
+  S.gameHistory.push(entry);
+  if(S.gameHistory.length>30) S.gameHistory=S.gameHistory.slice(-30);
+  save();
+}
+
+function renderHistoryPanel(){
+  const el=document.getElementById('history-list');
+  if(!S.gameHistory.length){
+    el.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No games yet</div><div class="empty-sub">Generate your first game plan</div></div>';
+    return;
+  }
+  el.innerHTML=[...S.gameHistory].reverse().map(g=>{
+    const haLabel=g.ha?`<span class="badge ${g.ha==='Home'?'b-ok':'b-warn'}" style="font-size:10px">${g.ha}</span>`:'';
+    const opp=g.opp?`vs <strong style="color:var(--white)">${g.opp}</strong>`:'';
+    const pitchers=g.pitcherNames?.length?`Pitchers: ${g.pitcherNames.join(', ')}`:'';
+    const innings=g.numInnings?`${g.numInnings} innings`:'';
+    return `<div class="history-item">
+      <div class="history-date">${fmtDate(g.date)}</div>
+      <div class="history-meta">
+        <div style="margin-bottom:3px">${haLabel} ${opp}</div>
+        <div>${[innings,pitchers].filter(Boolean).join(' · ')}</div>
+      </div>
+      <div class="history-actions">
+        <button class="btn btn-sm" onclick="viewHistoryGame('${g.id}')">👁 View</button>
+        <button class="btn btn-sm btn-primary" onclick="printHistoryGame('${g.id}')">🖨 PDF</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteHistoryGame('${g.id}')">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function deleteHistoryGame(id){
+  if(!confirm('Remove this game from history?')) return;
+  S.gameHistory=S.gameHistory.filter(g=>g.id!==id);
+  save(); renderHistoryPanel();
+}
+function clearHistory(){
+  if(!confirm('Clear ALL game history? Cannot be undone.')) return;
+  S.gameHistory=[]; save(); renderHistoryPanel();
+}
+
+let _historyViewPlan=null;
+function viewHistoryGame(id){
+  const g=S.gameHistory.find(x=>x.id===id);
+  if(!g||!g.plan) return;
+  _historyViewPlan=g;
+  document.getElementById('hv-title').textContent=[fmtDate(g.date),g.ha,g.opp?'vs '+g.opp:''].filter(Boolean).join(' · ')||'Game Plan';
+  document.getElementById('hv-body').innerHTML=`<div style="font-size:13px;color:var(--grey3);margin-bottom:12px">${buildGameMetaStr(g)}</div><div class="innings-grid">${g.plan.innings.map(inn=>renderInningCard(inn,g.plan)).join('')}</div>`;
+  openModal('modal-history-view');
+}
+function printHistoryGame(id){
+  const g=S.gameHistory.find(x=>x.id===id);
+  if(!g||!g.plan) return;
+  _historyViewPlan=g; injectForPrint(g.plan,g); setTimeout(()=>window.print(),300);
+}
+function printHistoryPlan(){
+  if(!_historyViewPlan) return;
+  injectForPrint(_historyViewPlan.plan,_historyViewPlan); setTimeout(()=>window.print(),300);
+}
+function injectForPrint(plan,meta){
+  document.querySelectorAll('.panel').forEach(el=>el.classList.remove('active'));
+  document.getElementById('panel-gameplan').classList.add('active');
+  document.getElementById('plan-output').style.display='block';
+  document.getElementById('gp-empty').style.display='none';
+  document.getElementById('plan-game-meta').textContent=buildGameMetaStr(meta||S.gameInfo);
+  document.getElementById('innings-output').innerHTML=plan.innings.map(inn=>renderInningCard(inn,plan)).join('');
+  renderSummaryTable(plan);
+}
+function buildGameMetaStr(meta){
+  if(!meta) return '';
+  const parts=[];
+  if(meta.team) parts.push(meta.team); if(meta.ha) parts.push(meta.ha);
+  if(meta.opp)  parts.push('vs '+meta.opp); if(meta.date) parts.push(fmtDate(meta.date));
+  return parts.join(' · ');
+}
+
+// ════════════════════════════════
+//  SETTINGS
+// ════════════════════════════════
+function saveApiKey(){
+  const v=document.getElementById('api-key-input').value.trim();
+  if(!v){ alert('Enter your API key.'); return; }
+  localStorage.setItem('fp2_apikey',v); showKeyStatus(true);
+}
+function showKeyStatus(has){
+  const el=document.getElementById('key-status'); if(!el) return;
+  el.style.display='block';
+  el.innerHTML=has?'<span style="color:#69db7c">✓ API key saved</span>':'<span style="color:#ff6b6b">No key set</span>';
+}
+function exportData(){
+  const blob=new Blob([JSON.stringify({players:S.players,setup:S.setup,gameInfo:S.gameInfo,gameHistory:S.gameHistory},null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='fieldplan-data.json';
+  a.click(); URL.revokeObjectURL(a.href);
+}
+function importData(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=(e)=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.players) throw new Error('Invalid file — no players found.');
+      if(!confirm(`Import data?\n\n${data.players.length} players · ${data.gameHistory?.length||0} history entries\n\nThis replaces current data.`)) return;
+      S.players    =data.players    ||S.players;
+      S.setup      =data.setup      ||S.setup;
+      S.gameInfo   =data.gameInfo   ||S.gameInfo;
+      S.gameHistory=data.gameHistory||S.gameHistory;
+      fixSetup(); save(); renderRoster(); updateGamePill(); switchTab('setup');
+      alert('✓ Data imported!');
+    }catch(err){ alert('Import failed: '+err.message); }
+    input.value='';
+  };
+  reader.readAsText(file);
+}
+function clearData(){
+  if(!confirm('Clear ALL data? Cannot be undone.')) return;
+  localStorage.removeItem('fp2_state');
+  S={players:[],gameInfo:{date:todayStr(),ha:'',opp:'',team:'Gateway Flyers U11 #2'},setup:{numInnings:6,absent:[],restrictions:{},zonePref:{},assignments:[],toggles:{repeatPos:true,noConsec:true,equalBench:true}},gameHistory:[],lastPlan:null};
+  renderRoster(); updateGamePill();
+}
+
+// ════════════════════════════════
+//  7. CLOUD SYNC (JSONBIN)
+// ════════════════════════════════
+function loadCloudConfig(){
+  const key=localStorage.getItem('fp2_jb_key');
+  const bin=localStorage.getItem('fp2_jb_bin');
+  if(key){ const el=document.getElementById('jb-key'); if(el) el.value=key; }
+  if(bin){ const el=document.getElementById('jb-bin'); if(el) el.value=bin; }
+}
+function saveCloudConfig(){
+  const key=document.getElementById('jb-key').value.trim();
+  const bin=document.getElementById('jb-bin').value.trim();
+  if(!key||!bin){ alert('Enter both the Master Key and Bin ID.'); return; }
+  localStorage.setItem('fp2_jb_key',key);
+  localStorage.setItem('fp2_jb_bin',bin);
+  setCloudStatus('✓ Cloud config saved. Data will auto-sync after each change.','ok');
+}
+async function cloudPush(){
+  const key=localStorage.getItem('fp2_jb_key');
+  const bin=localStorage.getItem('fp2_jb_bin');
+  if(!key||!bin){ alert('Set up cloud config first (Settings).'); return; }
+  setCloudStatus('⏳ Pushing to cloud…','wait');
+  try{
+    const resp=await fetch('https://api.jsonbin.io/v3/b/'+bin,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Master-Key':key},
+      body:JSON.stringify({...S,_synced:new Date().toISOString()})
+    });
+    if(!resp.ok){ const e=await resp.json(); throw new Error(e.message||resp.status); }
+    setCloudStatus('✓ Pushed — '+new Date().toLocaleTimeString(),'ok');
+  }catch(e){ setCloudStatus('✕ Push failed: '+e.message,'err'); }
+}
+async function cloudPull(){
+  const key=localStorage.getItem('fp2_jb_key');
+  const bin=localStorage.getItem('fp2_jb_bin');
+  if(!key||!bin){ alert('Set up cloud config first (Settings).'); return; }
+  setCloudStatus('⏳ Pulling from cloud…','wait');
+  try{
+    const resp=await fetch('https://api.jsonbin.io/v3/b/'+bin+'/latest',{headers:{'X-Master-Key':key}});
+    if(!resp.ok){ const e=await resp.json(); throw new Error(e.message||resp.status); }
+    const json=await resp.json();
+    const data=json.record;
+    if(!data?.players) throw new Error('No valid data in bin.');
+    const syncedAt=data._synced?new Date(data._synced).toLocaleString():'unknown time';
+    if(!confirm(`Pull cloud data from ${syncedAt}?\n\nThis will overwrite your current local data.`)) return;
+    S.players    =data.players    ||S.players;
+    S.setup      =data.setup      ||S.setup;
+    S.gameInfo   =data.gameInfo   ||S.gameInfo;
+    S.gameHistory=data.gameHistory||S.gameHistory;
+    fixSetup(); save(); renderRoster(); updateGamePill(); switchTab('setup');
+    setCloudStatus('✓ Pulled — data updated.','ok');
+  }catch(e){ setCloudStatus('✕ Pull failed: '+e.message,'err'); }
+}
+function setCloudStatus(msg,type){
+  const el=document.getElementById('cloud-status'); if(!el) return;
+  const c={ok:'#69db7c',err:'#ff6b6b',warn:'var(--amber)',wait:'var(--grey3)'};
+  el.style.display='block'; el.style.color=c[type]||c.ok; el.textContent=msg;
+}
+function openSyncModal(){ openModal('modal-sync'); }
+
+// ════════════════════════════════
+//  HELPERS
+// ════════════════════════════════
+function activePlayers(){ return S.players.filter(p=>(p.availability||'attending')==='attending'); }
+function activeFieldPositions(){
+  const n=activePlayers().length;
+  if(n>=9) return ['RF','CF','LF','3B','SS','2B','1B'];
+  if(n===8) return ['RF','LF','3B','SS','2B','1B'];
+  return ['RF','LF','3B','SS','1B'];
+}
+
+// ════════════════════════════════
+//  DRAG & DROP
+// ════════════════════════════════
+let dragCtx = null;
+
+function dragStart(event, zone, inning, posOrIdx, name){
+  dragCtx = { zone, inning: parseInt(inning), posOrIdx, name };
+  event.dataTransfer.effectAllowed = 'move';
+  event.target.classList.add('dragging');
+  setTimeout(()=>event.target.classList.remove('dragging'), 0);
+}
+
+function dragOver(event){
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+  event.currentTarget.classList.add('drag-over');
+}
+
+function dragLeave(event){
+  event.currentTarget.classList.remove('drag-over');
+}
+
+function dragDrop(event, targetZone, targetInning, targetPosOrIdx){
+  event.preventDefault();
+  event.currentTarget.classList.remove('drag-over');
+  if(!dragCtx || !S.lastPlan) return;
+
+  targetInning = parseInt(targetInning);
+  const plan = S.lastPlan;
+  const srcInn = plan.innings.find(x=>x.inning===dragCtx.inning);
+  const tgtInn = plan.innings.find(x=>x.inning===targetInning);
+  if(!srcInn || !tgtInn) return;
+
+  const srcName = dragCtx.name;
+  const srcZone = dragCtx.zone;
+  const srcPos  = dragCtx.posOrIdx; // position abbrev if field, index if bench
+
+  // Determine target player name
+  let tgtName = null;
+  if(targetZone === 'field') tgtName = tgtInn.positions[targetPosOrIdx];
+  if(targetZone === 'bench') tgtName = (tgtInn.bench||[])[parseInt(targetPosOrIdx)];
+
+  // Don't drop on self
+  if(srcInn===tgtInn && srcZone===targetZone && srcPos===targetPosOrIdx) return;
+
+  // Perform swap
+  if(srcZone==='field' && targetZone==='field'){
+    // Field ↔ Field (same or different inning)
+    srcInn.positions[srcPos] = tgtName||null;
+    if(!tgtName) delete srcInn.positions[srcPos];
+    tgtInn.positions[targetPosOrIdx] = srcName;
+
+  } else if(srcZone==='field' && targetZone==='bench'){
+    // Field → Bench slot
+    if(tgtName){
+      srcInn.positions[srcPos] = tgtName;
+      tgtInn.bench[parseInt(targetPosOrIdx)] = srcName;
+    } else {
+      delete srcInn.positions[srcPos];
+      tgtInn.bench.push(srcName);
+    }
+
+  } else if(srcZone==='bench' && targetZone==='field'){
+    // Bench → Field slot
+    const benchArr = srcInn.bench||[];
+    benchArr.splice(parseInt(srcPos), 1);
+    if(tgtName) benchArr.push(tgtName);
+    srcInn.bench = benchArr;
+    tgtInn.positions[targetPosOrIdx] = srcName;
+
+  } else if(srcZone==='bench' && targetZone==='bench'){
+    // Bench ↔ Bench
+    const srcBench = srcInn.bench||[];
+    const tgtBench = tgtInn.bench||[];
+    if(srcInn===tgtInn){
+      // Same inning bench reorder
+      srcBench.splice(parseInt(srcPos), 1, tgtName||srcName);
+      const tgtIdx = parseInt(targetPosOrIdx);
+      if(tgtName) tgtBench.splice(tgtIdx, 1, srcName);
+    } else {
+      srcBench.splice(parseInt(srcPos), 1);
+      if(tgtName){
+        tgtBench.splice(parseInt(targetPosOrIdx), 1, srcName);
+        srcBench.push(tgtName);
+      } else {
+        tgtBench.push(srcName);
+      }
+    }
+  }
+
+  dragCtx = null;
+  rebuildSummary(plan);
+  renderPlan(plan);
+}
+
+// ════════════════════════════════
+//  INIT
+// ════════════════════════════════
+function init(){
+  load();
+  S.gameInfo.team='Gateway Flyers U11 #2';
+  if(!S.gameInfo.date) S.gameInfo.date=todayStr();
+  PERMANENT_ROSTER.forEach(name=>{
+    if(!S.players.find(p=>p.name===name&&!p.tp)){
+      S.players.unshift({id:'p'+Math.random().toString(36).slice(2),name,tp:false,availability:'attending'});
+    }
+  });
+  S.players.sort((a,b)=>{
+    if(a.tp&&!b.tp) return 1; if(!a.tp&&b.tp) return -1;
+    const ai=PERMANENT_ROSTER.indexOf(a.name),bi=PERMANENT_ROSTER.indexOf(b.name);
+    if(ai===-1&&bi===-1) return 0; if(ai===-1) return 1; if(bi===-1) return -1;
+    return ai-bi;
+  });
+  save(); updateGamePill(); renderRoster();
+  switchTab('setup');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(el=>{
+  el.addEventListener('click',e=>{ if(e.target===el) el.classList.remove('open'); });
+});
+
+init();
+</script>
+</div>
+</body>
+</html>
