@@ -2180,7 +2180,10 @@ async function cloudPull(){
     S.setup      =data.setup      ||S.setup;
     S.gameInfo   =data.gameInfo   ||S.gameInfo;
     S.gameHistory=data.gameHistory||S.gameHistory;
-    fixSetup(); save(); renderRoster(); updateGamePill(); switchTab('setup');
+    S.lastPlan   =data.lastPlan   ||S.lastPlan;
+    fixSetup(); save(); renderRoster(); updateGamePill();
+    if(S.lastPlan) switchTab('gameplan');
+    else switchTab('setup');
     setCloudStatus('✓ Pulled — data updated.','ok');
   }catch(e){ setCloudStatus('✕ Pull failed: '+e.message,'err'); }
 }
