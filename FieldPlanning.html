@@ -1546,7 +1546,7 @@ THESE ARE EXACT — not approximate. Your output must match them.
 
 ━━━ RULES ━━━
 1. BENCH TARGETS ARE MANDATORY — match them exactly.
-2. A player who pitches or catches an inning is ACTIVE that inning — not bench.
+2. A player who pitches or catches an inning is ACTIVE — they must NEVER appear in that inning's bench array. Do not put pitchers or catchers in the bench list for their assigned innings.
 3. ${t.noConsec ? 'NO CONSECUTIVE BENCH — no player sits two innings in a row.' : 'Consecutive bench innings are allowed.'}
 4. POSITION ROTATION — fielders rotate: ${fieldPos.join('→')}. Each inning fielded, advance one slot.
 5. ${t.repeatPos ? 'Avoid assigning same field position back-to-back for same player.' : ''}
@@ -1868,6 +1868,11 @@ function applyEdit(){
 
 function rebuildSummary(plan){
   const active=activePlayers();
+  // First pass: clean up bench arrays — remove anyone who is pitcher or catcher that inning
+  plan.innings.forEach(inn=>{
+    inn.bench=(inn.bench||[]).filter(name=>name!==inn.pitcher && name!==inn.catcher);
+  });
+  // Second pass: rebuild summary
   plan.playerSummary=(plan.playerSummary||active.map(p=>({name:p.name,tp:p.tp,innings:[],benchCount:0}))).map(ps=>{
     const innings=plan.innings.map(inn=>{
       if(inn.pitcher===ps.name) return 'P';
@@ -1876,6 +1881,7 @@ function rebuildSummary(plan){
       const p=Object.entries(inn.positions||{}).find(([,n])=>n===ps.name)?.[0];
       return p||'—';
     });
+    // Only count actual bench innings (—), not pitching or catching
     const benchCount=innings.filter(v=>v==='—').length;
     return {...ps,innings,benchCount};
   });
