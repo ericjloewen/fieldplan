@@ -969,6 +969,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:3px;backgroun
     <button class="btn btn-primary" onclick="regeneratePlan()">&#8635; Regenerate</button>
     <button class="btn btn-purple"  onclick="randomizePlan()">&#127922; Randomize</button>
     <button class="btn btn-amber"   onclick="openInGameModal()">&#9889; In-Game Adjustment</button>
+    <button class="btn" style="background:rgba(47,158,68,0.12);border-color:rgba(47,158,68,0.35);color:#69db7c" onclick="openAddPlayerModal()">&#43; Add Player</button>
     <button class="btn"             onclick="window.print()">&#128424; Print / PDF</button>
     <div style="flex:1;min-width:8px"></div>
     <div class="loading-wrap" id="gp-loading-wrap" style="padding:0;flex-direction:row;align-items:center;gap:10px;flex:0">
@@ -1103,8 +1104,24 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:3px;backgroun
   </div>
 </div>
 
+<!-- Pitcher / Catcher Edit -->
+<div class="modal-overlay" id="modal-pc">
+  <div class="modal">
+    <div class="modal-title">Change <span style="color:var(--orange)" id="pc-modal-title">Pitcher</span></div>
+    <div class="modal-sub" id="pc-modal-sub"></div>
+    <div class="fg" style="margin-top:8px">
+      <label>Replace With</label>
+      <select id="pc-player-sel"></select>
+    </div>
+    <div id="pc-swap-note" style="font-size:12px;color:var(--grey3);margin-top:8px"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-pc')">Cancel</button>
+      <button class="btn btn-primary" onclick="applyPitcherCatcherChange()">Apply Change</button>
+    </div>
+  </div>
+</div>
+
 <!-- In-Game Adjustment -->
-<div class="modal-overlay" id="modal-ingame">
   <div class="modal" style="max-width:540px">
     <div class="modal-title">&#9889; In-Game <span style="color:var(--amber)">Adjustment</span></div>
     <div class="modal-sub">Describe the change and which inning it starts from. Completed innings stay locked.</div>
@@ -1135,6 +1152,29 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:3px;backgroun
     <div class="ig-loading" id="ig-loading">
       <div class="spinner" style="margin:0 auto 10px"></div>
       <div style="font-family:var(--font-display);font-size:13px;letter-spacing:1px;color:var(--amber)">REPLANNING&#8230;</div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Player to Live Game -->
+<div class="modal-overlay" id="modal-addplayer">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-title">&#43; Add <span style="color:var(--green)">Player</span></div>
+    <div class="modal-sub">Add a player who wasn't in the original plan. They'll be placed on bench from the inning they arrive, then worked into the rotation.</div>
+    <div class="row2" style="margin-bottom:12px">
+      <div class="fg">
+        <label>Player</label>
+        <select id="ap-player-sel"></select>
+      </div>
+      <div class="fg">
+        <label>Starting From Inning</label>
+        <select id="ap-from-inning"></select>
+      </div>
+    </div>
+    <div id="ap-note" style="font-size:12px;color:var(--grey3);padding:10px;background:var(--card2);border-radius:var(--radius);margin-bottom:4px"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-addplayer')">Cancel</button>
+      <button class="btn" style="background:rgba(47,158,68,0.15);border-color:rgba(47,158,68,0.4);color:#69db7c" onclick="applyAddPlayer()">&#43; Add to Game Plan</button>
     </div>
   </div>
 </div>
@@ -1743,8 +1783,8 @@ function renderInningCard(inn, plan){
     <div class="ic-head">
       <div class="ic-num"><small>INNING</small>${inn.inning}</div>
       <div class="ic-badges">
-        <span class="pit-badge">⚾ ${inn.pitcher}</span>
-        <span class="cat-badge">🥊 ${inn.catcher}</span>
+        <span class="pit-badge" style="cursor:pointer" onclick="openPitcherCatcherModal(${inn.inning},'pitcher')" title="Tap to change pitcher">⚾ ${inn.pitcher} <span style="font-size:9px;opacity:0.7">✎</span></span>
+        <span class="cat-badge" style="cursor:pointer" onclick="openPitcherCatcherModal(${inn.inning},'catcher')" title="Tap to change catcher">🥊 ${inn.catcher} <span style="font-size:9px;opacity:0.7">✎</span></span>
       </div>
     </div>
     <div class="pos-rows">${posRows}</div>
@@ -2209,6 +2249,148 @@ function activeFieldPositions(){
   if(n>=9) return ['RF','CF','LF','3B','SS','2B','1B'];
   if(n===8) return ['RF','LF','3B','SS','2B','1B'];
   return ['RF','LF','3B','SS','1B'];
+}
+
+// ════════════════════════════════
+//  ADD PLAYER TO LIVE GAME
+// ════════════════════════════════
+function openAddPlayerModal(){
+  if(!S.lastPlan){ alert('Generate a game plan first.'); return; }
+  const n = S.setup.numInnings;
+
+  // Build list of players NOT currently in the plan at all
+  const playersInPlan = new Set();
+  S.lastPlan.innings.forEach(inn=>{
+    if(inn.pitcher) playersInPlan.add(inn.pitcher);
+    if(inn.catcher) playersInPlan.add(inn.catcher);
+    Object.values(inn.positions||{}).forEach(n=>playersInPlan.add(n));
+    (inn.bench||[]).forEach(n=>playersInPlan.add(n));
+  });
+
+  // All known players (roster + any not attending)
+  const allPlayers = S.players.filter(p=>!playersInPlan.has(p.name));
+
+  if(!allPlayers.length){
+    alert('All rostered players are already in the game plan.');
+    return;
+  }
+
+  // Player selector
+  document.getElementById('ap-player-sel').innerHTML =
+    allPlayers.map(p=>`<option value="${p.id}">${p.name}${p.tp?' (TP)':''}</option>`).join('');
+
+  // Inning selector
+  document.getElementById('ap-from-inning').innerHTML =
+    Array.from({length:n},(_,i)=>`<option value="${i+1}">Inning ${i+1}</option>`).join('');
+
+  // Update note on change
+  const updateNote = () => {
+    const fromInn = parseInt(document.getElementById('ap-from-inning').value);
+    const remaining = n - fromInn + 1;
+    document.getElementById('ap-note').textContent =
+      `Player will be added to bench starting inning ${fromInn} and worked into the rotation for the remaining ${remaining} inning${remaining!==1?'s':''}.`;
+  };
+  document.getElementById('ap-from-inning').onchange = updateNote;
+  updateNote();
+
+  openModal('modal-addplayer');
+}
+
+function applyAddPlayer(){
+  const pid      = document.getElementById('ap-player-sel').value;
+  const fromInn  = parseInt(document.getElementById('ap-from-inning').value);
+  if(!pid || !S.lastPlan) return;
+
+  const player = S.players.find(p=>p.id===pid);
+  if(!player) return;
+
+  // Mark player as attending so they appear in future plans
+  player.availability = 'attending';
+
+  // Add them to bench for all innings from fromInn onwards
+  S.lastPlan.innings.forEach(inn=>{
+    if(inn.inning >= fromInn){
+      if(!inn.bench) inn.bench = [];
+      if(!inn.bench.includes(player.name)) inn.bench.push(player.name);
+    }
+  });
+
+  rebuildSummary(S.lastPlan);
+  save();
+  renderPlan(S.lastPlan);
+  closeModal('modal-addplayer');
+}
+
+// ════════════════════════════════
+//  PITCHER / CATCHER EDIT
+// ════════════════════════════════
+let pcCtx = { inning:null, role:null };
+
+function openPitcherCatcherModal(inning, role){
+  if(!S.lastPlan) return;
+  const inn = S.lastPlan.innings.find(x=>x.inning===inning);
+  if(!inn) return;
+  pcCtx = { inning, role };
+
+  const current = role==='pitcher' ? inn.pitcher : inn.catcher;
+  const other   = role==='pitcher' ? inn.catcher  : inn.pitcher;
+
+  document.getElementById('pc-modal-title').textContent = role==='pitcher' ? 'Pitcher' : 'Catcher';
+  document.getElementById('pc-modal-sub').textContent   = `Inning ${inning}: Currently ${current}. Select a replacement.`;
+
+  // Build options — all active players
+  const active = activePlayers();
+  const opts = active.map(p=>{
+    const isCurrent = p.name===current;
+    const isOther   = p.name===other;
+    const label = isCurrent ? `${p.name} (current)` : isOther ? `${p.name} (swap — takes over both roles)` : p.name;
+    return `<option value="${p.name}"${isCurrent?' selected':''}>${label}</option>`;
+  }).join('');
+  document.getElementById('pc-player-sel').innerHTML = opts;
+
+  // Note about swapping
+  const fieldOccupant = Object.entries(inn.positions||{}).find(([,n])=>n===current);
+  document.getElementById('pc-swap-note').textContent =
+    fieldOccupant
+      ? `If you pick a fielder, they will swap: ${current} takes their field position.`
+      : `${current} will move to bench if they're not assigned elsewhere this inning.`;
+
+  openModal('modal-pc');
+}
+
+function applyPitcherCatcherChange(){
+  const { inning, role } = pcCtx;
+  const newPlayer = document.getElementById('pc-player-sel').value;
+  if(!newPlayer || !S.lastPlan) return;
+
+  const plan = S.lastPlan;
+  const inn  = plan.innings.find(x=>x.inning===inning);
+  if(!inn){ closeModal('modal-pc'); return; }
+
+  const oldPlayer = role==='pitcher' ? inn.pitcher : inn.catcher;
+  if(newPlayer === oldPlayer){ closeModal('modal-pc'); return; }
+
+  // Check if new player is currently fielding this inning — if so swap
+  const fieldPos = Object.entries(inn.positions||{}).find(([,n])=>n===newPlayer)?.[0];
+  if(fieldPos){
+    // New player was fielding — move old player to that field position
+    inn.positions[fieldPos] = oldPlayer;
+  } else {
+    // New player was on bench or elsewhere — move old player to bench
+    inn.bench = (inn.bench||[]).filter(n=>n!==newPlayer);
+    if(!inn.bench.includes(oldPlayer)) inn.bench.push(oldPlayer);
+  }
+
+  // Assign new player to the role
+  if(role==='pitcher') inn.pitcher = newPlayer;
+  else inn.catcher = newPlayer;
+
+  // Remove new player from bench if they were there
+  inn.bench = (inn.bench||[]).filter(n=>n!==newPlayer);
+
+  rebuildSummary(plan);
+  renderPlan(plan);
+  closeModal('modal-pc');
 }
 
 // ════════════════════════════════
