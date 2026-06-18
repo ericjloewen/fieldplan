@@ -773,6 +773,20 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:3px;backgroun
   .sum-wrap{overflow-x:auto}
 }
 
+/* Position preference rows */
+.pos-pref-row{padding:10px 0;border-bottom:1px solid var(--border)}
+.pos-pref-row:last-child{border-bottom:none}
+.pos-pref-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.pos-pref-name{font-weight:600;font-size:14px}
+.field-more-toggle{display:flex;align-items:center;gap:6px;font-family:var(--font-display);font-size:10px;letter-spacing:1px;color:var(--grey3);cursor:pointer}
+.field-more-toggle.active{color:#f0b429}
+.field-more-dot{width:10px;height:10px;border-radius:50%;background:var(--grey1);border:1px solid var(--grey2);transition:all .15s}
+.field-more-toggle.active .field-more-dot{background:#f0b429;border-color:#f0b429}
+.pos-pref-btns{display:flex;flex-wrap:wrap;gap:4px}
+.pos-pref-btn{font-family:var(--font-display);font-size:10px;letter-spacing:0.5px;padding:4px 10px;border-radius:4px;cursor:pointer;border:1px solid var(--border2);background:var(--card2);color:var(--grey3);transition:all .12s}
+.pos-pref-btn.sel-out{background:var(--out-bg);border-color:var(--out-bdr);color:var(--out-txt)}
+.pos-pref-btn.sel-inf{background:var(--inf-bg);border-color:var(--inf-bdr);color:var(--inf-txt)}
+
 /* Touch drag styles */
 .pr.drag-over{background:rgba(245,98,15,0.15);border:1px dashed var(--orange)}
 .bc.drag-over{background:rgba(245,98,15,0.15);border:1px dashed var(--orange)}
@@ -915,9 +929,12 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:3px;backgroun
       </div>
 
       <div class="card">
-        <div class="card-title">Player Zone Preferences</div>
-        <div class="sh-sub" style="margin-bottom:12px;font-size:12px">Lock players to outfield or infield only for this game.</div>
-        <div id="zone-pref-list"></div>
+        <div class="card-title">Player Position Preferences</div>
+        <div style="font-size:12px;color:var(--grey3);margin-bottom:12px">
+          Set 1–3 preferred positions per player and optionally flag them for more field time.
+          The game plan will prioritise these positions and reduce bench time for flagged players.
+        </div>
+        <div id="pos-pref-list"></div>
       </div>
 
     </div>
@@ -972,7 +989,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:3px;backgroun
     <button class="btn" style="background:rgba(47,158,68,0.12);border-color:rgba(47,158,68,0.35);color:#69db7c" onclick="openAddPlayerModal()">&#43; Add Player</button>
     <button class="btn"             onclick="window.print()">&#128424; Print / PDF</button>
     <div style="flex:1;min-width:8px"></div>
-    <div class="loading-wrap" id="gp-loading-wrap" style="padding:0;flex-direction:row;align-items:center;gap:10px;flex:0">
+    <div id="gp-loading-wrap" style="display:none;align-items:center;gap:10px;flex:0">
       <div class="spinner" style="width:22px;height:22px;border-width:2px"></div>
       <span style="font-family:var(--font-display);font-size:12px;letter-spacing:1px;color:var(--orange)">REPLANNING&#8230;</span>
     </div>
@@ -1122,6 +1139,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:3px;backgroun
 </div>
 
 <!-- In-Game Adjustment -->
+<div class="modal-overlay" id="modal-ingame">
   <div class="modal" style="max-width:540px">
     <div class="modal-title">&#9889; In-Game <span style="color:var(--amber)">Adjustment</span></div>
     <div class="modal-sub">Describe the change and which inning it starts from. Completed innings stay locked.</div>
@@ -1263,6 +1281,8 @@ function load(){
 function fixSetup(){
   if(!S.setup) S.setup={numInnings:6,absent:[],restrictions:{},zonePref:{},assignments:[],toggles:{repeatPos:true,noConsec:true,equalBench:true}};
   if(!S.setup.zonePref)   S.setup.zonePref={};
+  if(!S.setup.posPrefs)   S.setup.posPrefs={};
+  if(!S.setup.fieldMore)  S.setup.fieldMore={};
   if(!S.setup.toggles)    S.setup.toggles={repeatPos:true,noConsec:true,equalBench:true};
   if(!S.gameInfo)         S.gameInfo={date:'',ha:'',opp:'',team:'Gateway Flyers U11 #2'};
   if(!S.gameHistory)      S.gameHistory=[];
@@ -1425,7 +1445,7 @@ function renderSetup(){
   document.getElementById('tog-equal-bench').checked =S.setup.toggles.equalBench;
   renderInningAssignments();
   renderRestrictions();
-  renderZonePrefs();
+  renderPosPrefs();
 }
 
 function onInningsChange(){
@@ -1479,22 +1499,56 @@ function renderRestrictions(){
 }
 function updateRestriction(id,v){ S.setup.restrictions[id]=v; save(); }
 
-function renderZonePrefs(){
+function renderPosPrefs(){
   const active=activePlayers();
-  if(!active.length){ document.getElementById('zone-pref-list').innerHTML='<div style="color:var(--grey3);font-size:13px">No active players.</div>'; return; }
-  document.getElementById('zone-pref-list').innerHTML=active.map(p=>{
-    const cur=S.setup.zonePref[p.id]||'none';
-    return `<div class="zone-select-row">
-      <div class="zone-name${p.tp?' tp-name':''}">${p.name}</div>
-      <div class="zone-btns">
-        <button class="zone-btn${cur==='none'?' active-none':''}" onclick="setZone('${p.id}','none')">Any</button>
-        <button class="zone-btn${cur==='outfield'?' active-out':''}" onclick="setZone('${p.id}','outfield')">Outfield</button>
-        <button class="zone-btn${cur==='infield'?' active-inf':''}" onclick="setZone('${p.id}','infield')">Infield</button>
+  const el=document.getElementById('pos-pref-list');
+  if(!el) return;
+  if(!active.length){ el.innerHTML='<div style="color:var(--grey3);font-size:13px">No active players.</div>'; return; }
+  if(!S.setup.posPrefs) S.setup.posPrefs={};
+  if(!S.setup.fieldMore) S.setup.fieldMore={};
+  const allPos=['RF','CF','LF','3B','SS','2B','1B'];
+  el.innerHTML=active.map(p=>{
+    const prefs=S.setup.posPrefs[p.id]||[];
+    const isMore=!!S.setup.fieldMore[p.id];
+    const btns=allPos.map(pos=>{
+      const isOut=OUTFIELD.includes(pos);
+      const sel=prefs.includes(pos);
+      const cls=sel?(isOut?'sel-out':'sel-inf'):'';
+      return `<button class="pos-pref-btn ${cls}" onclick="togglePosPref('${p.id}','${pos}')">${pos}</button>`;
+    }).join('');
+    return `<div class="pos-pref-row">
+      <div class="pos-pref-header">
+        <div class="pos-pref-name${p.tp?' tp-name':''}">${p.name}${p.tp?` <span class="badge b-tp">TP</span>`:''}</div>
+        <div class="field-more-toggle${isMore?' active':''}" onclick="toggleFieldMore('${p.id}')" title="Flag for more field time — reduced bench">
+          <div class="field-more-dot"></div>
+          <span>ON FIELD MORE</span>
+        </div>
       </div>
+      <div class="pos-pref-btns">${btns}</div>
+      ${prefs.length?`<div style="font-size:11px;color:var(--grey3);margin-top:5px">Preferred: ${prefs.join(', ')}</div>`:'<div style="font-size:11px;color:var(--grey2);margin-top:5px">No preference — any position</div>'}
     </div>`;
   }).join('');
 }
-function setZone(id,v){ S.setup.zonePref[id]=v; save(); renderZonePrefs(); }
+
+function togglePosPref(id, pos){
+  if(!S.setup.posPrefs) S.setup.posPrefs={};
+  const prefs=S.setup.posPrefs[id]||[];
+  const idx=prefs.indexOf(pos);
+  if(idx>-1){
+    prefs.splice(idx,1);
+  } else {
+    if(prefs.length>=3){ alert('Maximum 3 preferred positions per player.'); return; }
+    prefs.push(pos);
+  }
+  S.setup.posPrefs[id]=prefs;
+  save(); renderPosPrefs();
+}
+
+function toggleFieldMore(id){
+  if(!S.setup.fieldMore) S.setup.fieldMore={};
+  S.setup.fieldMore[id]=!S.setup.fieldMore[id];
+  save(); renderPosPrefs();
+}
 
 function saveSetup(){
   syncGameInfoFromFields();
@@ -1522,6 +1576,7 @@ function buildPrompt(extraOverride){
   const openPositions   = ['CF','2B'].filter(p=>!fieldPos.includes(p));
 
   // Pre-calculate exact per-player bench targets
+  // A player who pitches OR catches an inning is ACTIVE that inning — not bench-eligible
   const pitInnings={}, catInnings={};
   S.setup.assignments.forEach(a=>{
     const pn=S.players.find(p=>p.id===a.pitcher)?.name;
@@ -1529,13 +1584,50 @@ function buildPrompt(extraOverride){
     if(pn) pitInnings[pn]=(pitInnings[pn]||0)+1;
     if(cn) catInnings[cn]=(catInnings[cn]||0)+1;
   });
+
+  // Sort active players so those with most forced-active innings get lowest bench targets
+  const activeWithForced = active.map(p=>({
+    ...p,
+    forced: (pitInnings[p.name]||0) + (catInnings[p.name]||0),
+    maxBench: n - (pitInnings[p.name]||0) - (catInnings[p.name]||0)
+  }));
+
   const baseBench  = Math.floor(totalBenchSlots / Math.max(active.length,1));
   const extraCount = totalBenchSlots % Math.max(active.length,1);
-  const benchTargets = active.map((p,i)=>{
-    const forced=(pitInnings[p.name]||0)+(catInnings[p.name]||0);
-    const target=Math.min(i<extraCount ? baseBench+1 : baseBench, n-forced);
-    return `  ${p.name}: bench exactly ${Math.max(0,target)} innings (pitching:${pitInnings[p.name]||0}, catching:${catInnings[p.name]||0})`;
+
+  // Distribute bench targets — players with fewer forced innings get slightly more bench
+  let remaining = totalBenchSlots;
+  const targets = activeWithForced.map((p,i)=>{
+    const ideal = i < extraCount ? baseBench+1 : baseBench;
+    const target = Math.min(ideal, p.maxBench);
+    remaining -= target;
+    return { name:p.name, target, pit:pitInnings[p.name]||0, cat:catInnings[p.name]||0 };
+  });
+
+  // Field-more players get 1 fewer bench inning — redistribute that slot to others
+  const adjustedTargets = targets.map(t=>{
+    if(fieldMoreNames.has(t.name) && t.target > 0){
+      return {...t, target: t.target - 1};
+    }
+    return t;
+  });
+  // Add redistributed bench slots to non-field-more players
+  const savedSlots = targets.reduce((s,t)=>s+(fieldMoreNames.has(t.name)&&t.target>0?1:0),0);
+  let toDistribute = savedSlots;
+  const finalTargets = adjustedTargets.map(t=>{
+    if(!fieldMoreNames.has(t.name) && toDistribute>0 && t.target < t.maxBench){
+      toDistribute--;
+      return {...t, target: t.target+1};
+    }
+    return t;
+  });
+
+  const benchTargets = finalTargets.map(t=>{
+    const star = fieldMoreNames.has(t.name) ? ' ⭐ ON-FIELD-MORE' : '';
+    return `  ${t.name}: bench ${t.target} inning${t.target!==1?'s':''}${star} (pitching:${t.pit}, catching:${t.cat})`;
   }).join('\n');
+
+  const benchSum = finalTargets.reduce((s,t)=>s+t.target,0);
 
   const asgnLines = S.setup.assignments.map(a=>{
     const pit=S.players.find(p=>p.id===a.pitcher)?.name||'TBD';
@@ -1545,53 +1637,65 @@ function buildPrompt(extraOverride){
 
   const rlines = active.map(p=>{
     const r=S.setup.restrictions[p.id]||'none';
-    const z=S.setup.zonePref[p.id]||'none';
+    const prefs=(S.setup.posPrefs||{})[p.id]||[];
     const parts=[];
     if(r==='no-catch'||r==='late-first-no-catch') parts.push('cannot play Catcher');
     if(r==='no-pitch') parts.push('cannot pitch');
     if(r==='late-first'||r==='late-first-no-catch') parts.push('bench inning 1 (may be late)');
-    if(z==='outfield') parts.push('outfield only ('+fieldPos.filter(p=>OUTFIELD.includes(p)).join('/')+')');
-    if(z==='infield')  parts.push('infield only ('+fieldPos.filter(p=>INFIELD.includes(p)).join('/')+')');
-    if(p.tp) parts.push('TEMPORARY PLAYER — set tp:true in playerSummary');
-    return parts.length ? `  ${p.name}: ${parts.join(', ')}` : null;
+    if(prefs.length) parts.push(`PREFERRED POSITIONS: ${prefs.join(', ')} — assign to these positions whenever possible`);
+    return parts.length ? `  ${p.name}: ${parts.join('; ')}` : null;
   }).filter(Boolean).join('\n');
+
+  // Field-more players get 1 fewer bench inning where possible
+  const fieldMoreIds=Object.keys((S.setup.fieldMore||{})).filter(id=>S.setup.fieldMore[id]);
+  const fieldMoreNames=new Set(fieldMoreIds.map(id=>S.players.find(p=>p.id===id)?.name).filter(Boolean));
+  const fieldMoreNote=fieldMoreNames.size
+    ? `\nON-FIELD-MORE players (give 1 fewer bench inning if possible): ${[...fieldMoreNames].join(', ')}\n`
+    : '';
 
   const shortNote = openPositions.length
     ? `\nSHORT-HANDED (${active.length} players): OPEN positions — ${openPositions.join(', ')}. Use ONLY: ${fieldPos.join(', ')}.\n`
     : '';
 
   const posExample = fieldPos.reduce((o,p)=>{o[p]='Name';return o},{});
-  const extraTxt   = (extraOverride || document.getElementById('extra-notes')?.value || '').trim();
+  const benchExample = Array(benchPerInning).fill('Name');
+  const extraTxt = (extraOverride || document.getElementById('extra-notes')?.value || '').trim();
 
   return `You are a baseball rotation planner. Generate a precise ${n}-inning fielding plan.
 
 ━━━ PLAYERS (${active.length} active) ━━━
-${active.map(p=>p.name+(p.tp?' [TP]':'')).join(', ')}
+${active.map(p=>p.name).join(', ')}
 
 ━━━ STRUCTURE PER INNING ━━━
-Active: ${activePerInning} (1 pitcher + 1 catcher + ${numFielders} fielders)
-Bench:  ${benchPerInning}
-Positions: ${fieldPos.join(', ')}
+Active per inning: ${activePerInning} (1 pitcher + 1 catcher + ${numFielders} fielders)
+Bench per inning:  ${benchPerInning} player${benchPerInning!==1?'s':''}
+Field positions:   ${fieldPos.join(', ')}
 ${shortNote}
 ━━━ PITCHER & CATCHER — PER INNING ━━━
 ${asgnLines || '  None assigned'}
 
-━━━ RESTRICTIONS & ZONE PREFS ━━━
+━━━ RESTRICTIONS, POSITION PREFERENCES & FIELD TIME ━━━
 ${rlines || '  None'}
+${fieldMoreNote}
 
-━━━ MANDATORY BENCH TARGETS ━━━
-Total bench slots: ${totalBenchSlots} (${benchPerInning}/inning × ${n} innings)
+━━━ MANDATORY BENCH TARGETS (NON-NEGOTIABLE) ━━━
+Total bench slots across all ${n} innings: ${benchSum}
+Each player's required bench innings:
 ${benchTargets}
-THESE ARE EXACT — not approximate. Your output must match them.
+
+VERIFICATION: Add up all bench numbers above — they total ${benchSum}.
+Your output must have exactly ${benchPerInning} bench player${benchPerInning!==1?'s':''} per inning, and each player's total bench count must match the number shown above.
 
 ━━━ RULES ━━━
-1. BENCH TARGETS ARE MANDATORY — match them exactly.
-2. A player who pitches or catches an inning is ACTIVE — they must NEVER appear in that inning's bench array. Do not put pitchers or catchers in the bench list for their assigned innings.
-3. ${t.noConsec ? 'NO CONSECUTIVE BENCH — no player sits two innings in a row.' : 'Consecutive bench innings are allowed.'}
-4. POSITION ROTATION — fielders rotate: ${fieldPos.join('→')}. Each inning fielded, advance one slot.
-5. ${t.repeatPos ? 'Avoid assigning same field position back-to-back for same player.' : ''}
-6. Respect all restrictions and zone preferences above.
-${extraTxt ? `7. ADDITIONAL: ${extraTxt}` : ''}
+1. BENCH TARGETS ARE MANDATORY — match them exactly. Do not round, approximate, or ignore them.
+2. Pitchers and catchers are ACTIVE those innings — NEVER put them in the bench array for innings they pitch or catch.
+3. Each inning's bench array must have EXACTLY ${benchPerInning} name${benchPerInning!==1?'s':''}.
+4. ${t.noConsec ? 'NO CONSECUTIVE BENCH — no player sits bench two innings in a row.' : 'Consecutive bench innings are allowed.'}
+5. POSITION ROTATION — fielders rotate: ${fieldPos.join('→')}. Each inning a player fields, they advance one position.
+6. ${t.repeatPos ? 'Avoid same field position back-to-back for the same player.' : ''}
+7. POSITION PREFERENCES — assign players to their preferred positions as much as possible. Only deviate when necessary for balance.
+8. Respect all restrictions listed above.
+${extraTxt ? `9. ADDITIONAL: ${extraTxt}` : ''}
 
 ━━━ RESPOND WITH VALID JSON ONLY — no markdown, no fences ━━━
 {
@@ -1601,15 +1705,15 @@ ${extraTxt ? `7. ADDITIONAL: ${extraTxt}` : ''}
       "pitcher": "Name",
       "catcher": "Name",
       "positions": ${JSON.stringify(posExample)},
-      "bench": ${JSON.stringify(Array(benchPerInning).fill('Name'))}
+      "bench": ${JSON.stringify(benchExample)}
     }
   ],
   "warnings": [],
   "playerSummary": [
-    {"name":"Name","tp":false,"innings":${JSON.stringify(Array(n).fill('RF'))},"benchCount":0}
+    {"name":"Name","innings":${JSON.stringify(Array(n).fill('RF'))},"benchCount":0}
   ]
 }
-playerSummary.innings: exactly ${n} entries. P=pitching, C=catching, —=bench, position abbrev otherwise.`;
+playerSummary.innings: exactly ${n} entries per player. Values: position abbrev | "P" | "C" | "—" (bench only).`;
 }
 
 // ════════════════════════════════
@@ -1621,7 +1725,9 @@ async function callClaude(prompt, opts={}){
   if(!apiKey){ showErr(errId,'No API key — go to Settings.'); return null; }
   if(btnId) document.getElementById(btnId).disabled=true;
   const loadEl=document.getElementById(loadingId);
-  if(loadEl) loadEl.classList.add('on');
+  // Use display style for toolbar spinner, class for full-page spinners
+  const isInline = loadingId==='gp-loading-wrap';
+  if(loadEl){ if(isInline) loadEl.style.display='flex'; else loadEl.classList.add('on'); }
   const errEl=document.getElementById(errId);
   if(errEl) errEl.classList.remove('on');
   try{
@@ -1645,7 +1751,7 @@ async function callClaude(prompt, opts={}){
     return null;
   }finally{
     if(btnId) document.getElementById(btnId).disabled=false;
-    if(loadEl) loadEl.classList.remove('on');
+    if(loadEl){ if(isInline) loadEl.style.display='none'; else loadEl.classList.remove('on'); }
   }
 }
 
@@ -1912,8 +2018,9 @@ function rebuildSummary(plan){
   plan.innings.forEach(inn=>{
     inn.bench=(inn.bench||[]).filter(name=>name!==inn.pitcher && name!==inn.catcher);
   });
-  // Second pass: rebuild summary
-  plan.playerSummary=(plan.playerSummary||active.map(p=>({name:p.name,tp:p.tp,innings:[],benchCount:0}))).map(ps=>{
+  // Second pass: rebuild summary — always derive tp from roster, never trust Claude's tp field
+  plan.playerSummary=(plan.playerSummary||active.map(p=>({name:p.name,innings:[],benchCount:0}))).map(ps=>{
+    const rosterPlayer=S.players.find(p=>p.name===ps.name);
     const innings=plan.innings.map(inn=>{
       if(inn.pitcher===ps.name) return 'P';
       if(inn.catcher===ps.name) return 'C';
@@ -1921,9 +2028,8 @@ function rebuildSummary(plan){
       const p=Object.entries(inn.positions||{}).find(([,n])=>n===ps.name)?.[0];
       return p||'—';
     });
-    // Only count actual bench innings (—), not pitching or catching
     const benchCount=innings.filter(v=>v==='—').length;
-    return {...ps,innings,benchCount};
+    return {...ps, tp:rosterPlayer?.tp||false, innings, benchCount};
   });
 }
 
@@ -2200,10 +2306,12 @@ async function cloudPush(){
   if(!key||!bin){ alert('Set up cloud config first (Settings).'); return; }
   setCloudStatus('⏳ Pushing to cloud…','wait');
   try{
+    S._synced=new Date().toISOString();
+    save(); // persist _synced locally too
     const resp=await fetch('https://api.jsonbin.io/v3/b/'+bin,{
       method:'PUT',
       headers:{'Content-Type':'application/json','X-Master-Key':key},
-      body:JSON.stringify({...S,_synced:new Date().toISOString()})
+      body:JSON.stringify({...S})
     });
     if(!resp.ok){ const e=await resp.json(); throw new Error(e.message||resp.status); }
     setCloudStatus('✓ Pushed — '+new Date().toLocaleTimeString(),'ok');
@@ -2214,24 +2322,44 @@ async function cloudPull(){
   const bin=localStorage.getItem('fp2_jb_bin');
   if(!key||!bin){ alert('Set up cloud config first (Settings).'); return; }
   setCloudStatus('⏳ Pulling from cloud…','wait');
-  try{
-    const resp=await fetch('https://api.jsonbin.io/v3/b/'+bin+'/latest',{headers:{'X-Master-Key':key}});
-    if(!resp.ok){ const e=await resp.json(); throw new Error(e.message||resp.status); }
-    const json=await resp.json();
-    const data=json.record;
-    if(!data?.players) throw new Error('No valid data in bin.');
-    const syncedAt=data._synced?new Date(data._synced).toLocaleString():'unknown time';
-    if(!confirm(`Pull cloud data from ${syncedAt}?\n\nThis will overwrite your current local data.`)) return;
-    S.players    =data.players    ||S.players;
-    S.setup      =data.setup      ||S.setup;
-    S.gameInfo   =data.gameInfo   ||S.gameInfo;
-    S.gameHistory=data.gameHistory||S.gameHistory;
-    S.lastPlan   =data.lastPlan   ||S.lastPlan;
-    fixSetup(); save(); renderRoster(); updateGamePill();
-    if(S.lastPlan) switchTab('gameplan');
-    else switchTab('setup');
-    setCloudStatus('✓ Pulled — data updated.','ok');
-  }catch(e){ setCloudStatus('✕ Pull failed: '+e.message,'err'); }
+  // Retry up to 3 times with a short delay — handles JSONBin propagation lag
+  for(let attempt=1; attempt<=3; attempt++){
+    try{
+      const resp=await fetch('https://api.jsonbin.io/v3/b/'+bin+'/latest',{
+        headers:{'X-Master-Key':key,'Cache-Control':'no-cache'}
+      });
+      if(!resp.ok){ const e=await resp.json(); throw new Error(e.message||resp.status); }
+      const json=await resp.json();
+      const data=json.record;
+      if(!data?.players) throw new Error('No valid data in bin.');
+      // Check if cloud data is newer than local
+      const cloudTime = data._synced ? new Date(data._synced) : null;
+      const localTime = S._synced   ? new Date(S._synced)    : null;
+      if(cloudTime && localTime && cloudTime <= localTime && attempt===1){
+        // Cloud not newer — wait and retry
+        if(attempt < 3){
+          setCloudStatus(`⏳ Waiting for cloud to update… (attempt ${attempt+1})`, 'wait');
+          await new Promise(r=>setTimeout(r, 2000));
+          continue;
+        }
+      }
+      S.players    =data.players    ||S.players;
+      S.setup      =data.setup      ||S.setup;
+      S.gameInfo   =data.gameInfo   ||S.gameInfo;
+      S.gameHistory=data.gameHistory||S.gameHistory;
+      S.lastPlan   =data.lastPlan   ||S.lastPlan;
+      S._synced    =data._synced    ||S._synced;
+      fixSetup(); save(); renderRoster(); updateGamePill();
+      if(S.lastPlan) switchTab('gameplan');
+      else switchTab('setup');
+      const syncedAt=cloudTime?cloudTime.toLocaleTimeString():'unknown';
+      setCloudStatus('✓ Pulled — synced at '+syncedAt,'ok');
+      return;
+    }catch(e){
+      if(attempt===3) setCloudStatus('✕ Pull failed: '+e.message,'err');
+      else await new Promise(r=>setTimeout(r,2000));
+    }
+  }
 }
 function setCloudStatus(msg,type){
   const el=document.getElementById('cloud-status'); if(!el) return;
