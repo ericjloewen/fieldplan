@@ -1575,8 +1575,7 @@ function buildPrompt(extraOverride){
   const totalBenchSlots = benchPerInning * n;
   const openPositions   = ['CF','2B'].filter(p=>!fieldPos.includes(p));
 
-  // Pre-calculate exact per-player bench targets
-  // A player who pitches OR catches an inning is ACTIVE that inning — not bench-eligible
+  // Pitcher/catcher innings per player
   const pitInnings={}, catInnings={};
   S.setup.assignments.forEach(a=>{
     const pn=S.players.find(p=>p.id===a.pitcher)?.name;
@@ -1585,56 +1584,52 @@ function buildPrompt(extraOverride){
     if(cn) catInnings[cn]=(catInnings[cn]||0)+1;
   });
 
-  // Sort active players so those with most forced-active innings get lowest bench targets
+  // Field-more players — declare FIRST so available for bench calc below
+  const fieldMoreIds=Object.keys((S.setup.fieldMore||{})).filter(id=>S.setup.fieldMore[id]);
+  const fieldMoreNames=new Set(fieldMoreIds.map(id=>S.players.find(p=>p.id===id)?.name).filter(Boolean));
+
+  // Bench targets
   const activeWithForced = active.map(p=>({
     ...p,
-    forced: (pitInnings[p.name]||0) + (catInnings[p.name]||0),
-    maxBench: n - (pitInnings[p.name]||0) - (catInnings[p.name]||0)
+    forced: (pitInnings[p.name]||0)+(catInnings[p.name]||0),
+    maxBench: n-(pitInnings[p.name]||0)-(catInnings[p.name]||0)
   }));
-
   const baseBench  = Math.floor(totalBenchSlots / Math.max(active.length,1));
   const extraCount = totalBenchSlots % Math.max(active.length,1);
-
-  // Distribute bench targets — players with fewer forced innings get slightly more bench
-  let remaining = totalBenchSlots;
   const targets = activeWithForced.map((p,i)=>{
     const ideal = i < extraCount ? baseBench+1 : baseBench;
     const target = Math.min(ideal, p.maxBench);
-    remaining -= target;
-    return { name:p.name, target, pit:pitInnings[p.name]||0, cat:catInnings[p.name]||0 };
+    return { name:p.name, target, pit:pitInnings[p.name]||0, cat:catInnings[p.name]||0, maxBench:p.maxBench };
   });
 
-  // Field-more players get 1 fewer bench inning — redistribute that slot to others
-  const adjustedTargets = targets.map(t=>{
-    if(fieldMoreNames.has(t.name) && t.target > 0){
-      return {...t, target: t.target - 1};
-    }
-    return t;
-  });
-  // Add redistributed bench slots to non-field-more players
-  const savedSlots = targets.reduce((s,t)=>s+(fieldMoreNames.has(t.name)&&t.target>0?1:0),0);
+  // Reduce bench by 1 for field-more players, redistribute to others
+  const adjustedTargets = targets.map(t=>({
+    ...t, target: fieldMoreNames.has(t.name)&&t.target>0 ? t.target-1 : t.target
+  }));
+  const savedSlots = targets.filter(t=>fieldMoreNames.has(t.name)&&t.target>0).length;
   let toDistribute = savedSlots;
   const finalTargets = adjustedTargets.map(t=>{
-    if(!fieldMoreNames.has(t.name) && toDistribute>0 && t.target < t.maxBench){
+    if(!fieldMoreNames.has(t.name)&&toDistribute>0&&t.target<t.maxBench){
       toDistribute--;
-      return {...t, target: t.target+1};
+      return {...t, target:t.target+1};
     }
     return t;
   });
 
+  const benchSum = finalTargets.reduce((s,t)=>s+t.target,0);
   const benchTargets = finalTargets.map(t=>{
-    const star = fieldMoreNames.has(t.name) ? ' ⭐ ON-FIELD-MORE' : '';
+    const star = fieldMoreNames.has(t.name) ? ' * ON-FIELD-MORE' : '';
     return `  ${t.name}: bench ${t.target} inning${t.target!==1?'s':''}${star} (pitching:${t.pit}, catching:${t.cat})`;
   }).join('\n');
 
-  const benchSum = finalTargets.reduce((s,t)=>s+t.target,0);
-
+  // Pitcher/catcher assignments
   const asgnLines = S.setup.assignments.map(a=>{
     const pit=S.players.find(p=>p.id===a.pitcher)?.name||'TBD';
     const cat=S.players.find(p=>p.id===a.catcher)?.name||'TBD';
     return `  Inning ${a.inning}: Pitcher=${pit}, Catcher=${cat}`;
   }).join('\n');
 
+  // Restrictions and position preferences
   const rlines = active.map(p=>{
     const r=S.setup.restrictions[p.id]||'none';
     const prefs=(S.setup.posPrefs||{})[p.id]||[];
@@ -1642,62 +1637,57 @@ function buildPrompt(extraOverride){
     if(r==='no-catch'||r==='late-first-no-catch') parts.push('cannot play Catcher');
     if(r==='no-pitch') parts.push('cannot pitch');
     if(r==='late-first'||r==='late-first-no-catch') parts.push('bench inning 1 (may be late)');
-    if(prefs.length) parts.push(`PREFERRED POSITIONS: ${prefs.join(', ')} — assign to these positions whenever possible`);
+    if(prefs.length){
+      const isPitcher=S.setup.assignments.some(a=>S.players.find(x=>x.id===a.pitcher)?.name===p.name);
+      const isCatcher=S.setup.assignments.some(a=>S.players.find(x=>x.id===a.catcher)?.name===p.name);
+      const note=(isPitcher||isCatcher)?' (pitcher/catcher role takes priority in assigned innings; prefs apply to fielding innings only)':'';
+      parts.push(`preferred field positions: ${prefs.join(', ')}${note}`);
+    }
     return parts.length ? `  ${p.name}: ${parts.join('; ')}` : null;
   }).filter(Boolean).join('\n');
 
-  // Field-more players get 1 fewer bench inning where possible
-  const fieldMoreIds=Object.keys((S.setup.fieldMore||{})).filter(id=>S.setup.fieldMore[id]);
-  const fieldMoreNames=new Set(fieldMoreIds.map(id=>S.players.find(p=>p.id===id)?.name).filter(Boolean));
-  const fieldMoreNote=fieldMoreNames.size
-    ? `\nON-FIELD-MORE players (give 1 fewer bench inning if possible): ${[...fieldMoreNames].join(', ')}\n`
+  const fieldMoreNote = fieldMoreNames.size
+    ? `ON-FIELD-MORE (reduced bench): ${[...fieldMoreNames].join(', ')}`
     : '';
 
   const shortNote = openPositions.length
-    ? `\nSHORT-HANDED (${active.length} players): OPEN positions — ${openPositions.join(', ')}. Use ONLY: ${fieldPos.join(', ')}.\n`
+    ? `\nSHORT-HANDED (${active.length} players): Use ONLY: ${fieldPos.join(', ')}. NOT used: ${openPositions.join(', ')}.\n`
     : '';
 
   const posExample = fieldPos.reduce((o,p)=>{o[p]='Name';return o},{});
   const benchExample = Array(benchPerInning).fill('Name');
-  const extraTxt = (extraOverride || document.getElementById('extra-notes')?.value || '').trim();
+  const extraTxt = (extraOverride||document.getElementById('extra-notes')?.value||'').trim();
 
   return `You are a baseball rotation planner. Generate a precise ${n}-inning fielding plan.
 
-━━━ PLAYERS (${active.length} active) ━━━
-${active.map(p=>p.name).join(', ')}
+PLAYERS (${active.length} active): ${active.map(p=>p.name).join(', ')}
 
-━━━ STRUCTURE PER INNING ━━━
-Active per inning: ${activePerInning} (1 pitcher + 1 catcher + ${numFielders} fielders)
-Bench per inning:  ${benchPerInning} player${benchPerInning!==1?'s':''}
-Field positions:   ${fieldPos.join(', ')}
+STRUCTURE PER INNING:
+- Active: ${activePerInning} (1 pitcher + 1 catcher + ${numFielders} fielders: ${fieldPos.join(', ')})
+- Bench: ${benchPerInning} player${benchPerInning!==1?'s':''}
 ${shortNote}
-━━━ PITCHER & CATCHER — PER INNING ━━━
-${asgnLines || '  None assigned'}
+PITCHER & CATCHER ASSIGNMENTS (FIXED — override everything else including position prefs):
+${asgnLines||'  None assigned'}
 
-━━━ RESTRICTIONS, POSITION PREFERENCES & FIELD TIME ━━━
-${rlines || '  None'}
+PLAYER PREFERENCES & RESTRICTIONS:
+${rlines||'  None'}
 ${fieldMoreNote}
 
-━━━ MANDATORY BENCH TARGETS (NON-NEGOTIABLE) ━━━
-Total bench slots across all ${n} innings: ${benchSum}
-Each player's required bench innings:
+MANDATORY BENCH TARGETS (must be matched exactly):
 ${benchTargets}
+Total: ${benchSum} bench slots across ${n} innings
 
-VERIFICATION: Add up all bench numbers above — they total ${benchSum}.
-Your output must have exactly ${benchPerInning} bench player${benchPerInning!==1?'s':''} per inning, and each player's total bench count must match the number shown above.
+RULES:
+1. Every player's bench count must exactly match their target above.
+2. Pitchers and catchers are ACTIVE those innings — never in the bench array.
+3. Each inning's bench array must have EXACTLY ${benchPerInning} player${benchPerInning!==1?'s':''}.
+4. ${t.noConsec?'No player sits bench two innings in a row.':'Consecutive bench is allowed.'}
+5. In fielding innings, assign players to their preferred positions when possible.
+6. Pitcher/catcher assignments are fixed and take full priority over position preferences.
+7. ${t.repeatPos?'Avoid same field position back-to-back for the same player.':''}
+${extraTxt?`8. ADDITIONAL: ${extraTxt}`:''}
 
-━━━ RULES ━━━
-1. BENCH TARGETS ARE MANDATORY — match them exactly. Do not round, approximate, or ignore them.
-2. Pitchers and catchers are ACTIVE those innings — NEVER put them in the bench array for innings they pitch or catch.
-3. Each inning's bench array must have EXACTLY ${benchPerInning} name${benchPerInning!==1?'s':''}.
-4. ${t.noConsec ? 'NO CONSECUTIVE BENCH — no player sits bench two innings in a row.' : 'Consecutive bench innings are allowed.'}
-5. POSITION ROTATION — fielders rotate: ${fieldPos.join('→')}. Each inning a player fields, they advance one position.
-6. ${t.repeatPos ? 'Avoid same field position back-to-back for the same player.' : ''}
-7. POSITION PREFERENCES — assign players to their preferred positions as much as possible. Only deviate when necessary for balance.
-8. Respect all restrictions listed above.
-${extraTxt ? `9. ADDITIONAL: ${extraTxt}` : ''}
-
-━━━ RESPOND WITH VALID JSON ONLY — no markdown, no fences ━━━
+RESPOND WITH VALID JSON ONLY — no markdown, no explanation:
 {
   "innings": [
     {
@@ -1713,7 +1703,7 @@ ${extraTxt ? `9. ADDITIONAL: ${extraTxt}` : ''}
     {"name":"Name","innings":${JSON.stringify(Array(n).fill('RF'))},"benchCount":0}
   ]
 }
-playerSummary.innings: exactly ${n} entries per player. Values: position abbrev | "P" | "C" | "—" (bench only).`;
+playerSummary.innings: exactly ${n} entries. P=pitching, C=catching, ---=bench, or position abbreviation.`;
 }
 
 // ════════════════════════════════
